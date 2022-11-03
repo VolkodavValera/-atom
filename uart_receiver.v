@@ -8,9 +8,6 @@
 //Дата      : 22.06.2021
 //Описание  : Модуль управления драйвером приемника UART
 //-------------------------------------------------------------------------------------------------
-
-`include "common.vh"
-
 module uart_receiver(clk,rst_n,rxd,data,done);
 
 		parameter EIGHT_BIT_DATA   = 8;
@@ -18,17 +15,21 @@ module uart_receiver(clk,rst_n,rxd,data,done);
 		parameter STOP_BIT         = 2;
 		parameter DEFAULT_BDR      = 115200;
 
+		localparam  CLR 			= 0;
+		localparam  SET 			= 1;
+		localparam  SYS_CLK_DIV2 	= 100_000_000;
+
 		input   clk;
 		input   rst_n;
 		input   rxd;
-		output reg [EIGHT_BIT_DATA-1:0] data = {{EIGHT_BIT_DATA{1'b0}};
-		output reg done = `CLR;
+		output reg [EIGHT_BIT_DATA-1:0] data = '0;
+		output reg done = CLR;
 
 
 		localparam OVER_SAMPLING = 16;
 		localparam HALF_OVER_SAMPLING = OVER_SAMPLING / 2;
 
-		localparam [63:0] DEFAULT_NCO =  OVER_SAMPLING * DEFAULT_BDR * ({{62{1'b0}},2'b10}**16)  / `SYS_CLK_DIV2;  // (OVER_SAMLING * 2^16 * baund_rate / sys_clk)
+		localparam [63:0] DEFAULT_NCO =  OVER_SAMPLING * DEFAULT_BDR * ({{62{1'b0}},2'b10}**16)  / SYS_CLK_DIV2;  // (OVER_SAMLING * 2^16 * baund_rate / sys_clk)
 
 	    localparam[2:0]
 
@@ -40,9 +41,9 @@ module uart_receiver(clk,rst_n,rxd,data,done);
 		DONE    		  = 3'd5;
 
 
-		reg rx_bit = `CLR;
-		reg parity_bit = `CLR;
-		reg sample = `CLR;
+		reg rx_bit = CLR;
+		reg parity_bit = CLR;
+		reg sample = CLR;
 
 		reg [2:0] state = 3'h0;
 		reg [2:0] sync_reg = 3'h0;
@@ -94,7 +95,7 @@ module uart_receiver(clk,rst_n,rxd,data,done);
 		always@(posedge clk) begin
 
 			if(clk_counter == HALF_OVER_SAMPLING) sample <= nco_tick_ff;
-			else sample <= `CLR;
+			else sample <= CLR;
 		end
 
 // цикл переходов автомата ---------------------------------------------------------------------------------
@@ -170,8 +171,8 @@ module uart_receiver(clk,rst_n,rxd,data,done);
 			IDLE: begin
 
 			bit_counter <= 4'd0;
-			parity_bit <= `CLR;
-			done <= `CLR;
+			parity_bit <= CLR;
+			done <= CLR;
 			stop_bit_counter <= 2'd1;
 
 			end
@@ -189,7 +190,7 @@ module uart_receiver(clk,rst_n,rxd,data,done);
 
 			CHECK_STOP_BIT: if(sample) stop_bit_counter <= stop_bit_counter + 2'd1;
 
-			DONE: done <= `SET;
+			DONE: done <= SET;
 
 			endcase
 		end
