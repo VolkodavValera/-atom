@@ -444,7 +444,7 @@ module mem2vga (
 		PLL_VGA.operation_mode = "NORMAL",
 		PLL_VGA.pll_type = "AUTO",
 		PLL_VGA.port_clk0 = "PORT_USED",
-		PLL_VGA.width_clock = 1;
+		PLL_VGA.width_clock = 5;
 
 
 	altpll	PLL_SDRAM (
@@ -485,7 +485,7 @@ module mem2vga (
 		PLL_SDRAM.pll_type = "AUTO",
 		PLL_SDRAM.port_clk0 = "PORT_USED",
 		PLL_SDRAM.port_clk1 = "PORT_USED",
-		PLL_SDRAM.width_clock = 2;
+		PLL_SDRAM.width_clock = 5;
 
 /*------------------------------------------------------*/
 /*						ROM								*/

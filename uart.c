@@ -124,28 +124,31 @@ int main() {
     list *database = init();
     BOOL Status;
 
-    for (size_t j = 0; j < 8; j++) {
-        printf("Hey!\n");
-        printf("%s\n", gets(str));
-        printf("%d\n", read(database, str));
-    }
-
     serialHandle = CreateFile("\\\\.\\COM1", GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
 
     if (serialHandle == INVALID_HANDLE_VALUE)
-        printf("Error in opening serial port");
+        printf("Error in opening serial port\n");
     else
-        printf("opening serial port successful");
+        printf("opening serial port successful\n");
 
     // Do some basic settings
     serialParams.DCBlength = sizeof(serialParams);
 
-    GetCommState(serialHandle, &serialParams);
+    Status = GetCommState(serialHandle, &serialParams);
+    if (Status == FALSE)
+        printf("Error in getcomm\n");
+    else
+        printf("Greate getcomm\n");
+
     serialParams.BaudRate = baudrate;
     serialParams.ByteSize = byteSize;
     serialParams.StopBits = stopBits;
     serialParams.Parity = parity;
-    SetCommState(serialHandle, &serialParams);
+    Status = SetCommState(serialHandle, &serialParams);
+    if (Status == FALSE)
+        printf("Error in setcomm\n");
+    else
+        printf("Greate setcomm\n");
 
     // Set timeouts
     timeout.ReadIntervalTimeout = 50;
@@ -154,7 +157,11 @@ int main() {
     timeout.WriteTotalTimeoutConstant = 50;
     timeout.WriteTotalTimeoutMultiplier = 10;
 
-    SetCommTimeouts(serialHandle, &timeout);
+    Status = SetCommTimeouts(serialHandle, &timeout);
+    if (Status == FALSE)
+        printf("Error in settime\n");
+    else
+        printf("Greate settime\n");
 
     if ((f = fopen("init_mem_uart.txt", "r")) == NULL)
     {

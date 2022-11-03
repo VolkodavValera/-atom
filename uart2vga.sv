@@ -222,7 +222,7 @@ module uart2vga (
 		PLL_VGA.operation_mode = "NORMAL",
 		PLL_VGA.pll_type = "AUTO",
 		PLL_VGA.port_clk0 = "PORT_USED",
-		PLL_VGA.width_clock = 1;
+		PLL_VGA.width_clock = 5;
 
 
 	altpll	PLL_SYSTEM (
@@ -258,7 +258,7 @@ module uart2vga (
         PLL_SYSTEM.operation_mode = "NORMAL",
         PLL_SYSTEM.pll_type = "AUTO",
         PLL_SYSTEM.port_clk0 = "PORT_USED",
-        PLL_SYSTEM.width_clock = 1;
+        PLL_SYSTEM.width_clock = 5;
 
 /*------------------------------------------------------*/
 /*						ROM								*/
