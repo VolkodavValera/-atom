@@ -29,7 +29,7 @@ module uart2vga (
 	parameter ADDRESS_WIDTH		= 3;
     parameter Wight             = 640;
     parameter Height            = 480;
-    localparam  MAX_ADDR_RAM    = Wight * Height;
+    localparam MAX_ADDR_RAM   	= Wight * Height;
 	localparam WAIT_ARINC		= 0;
 	localparam FIFO_ARINC_FULL 	= 1;
 	localparam READ_DATA		= 2;
@@ -86,7 +86,7 @@ module uart2vga (
     // UART
     logic                           UART_DONE;
     logic                           UART_DONE_FF;
-    logic   [2:0]                   UART_DATA;
+    logic   [7:0]                   UART_DATA;
 
 
 /*------------------------------------------------------*/
@@ -97,7 +97,8 @@ module uart2vga (
 	assign RAM_ADDR = ram_write ? ram_write_address : ram_read_address;
 	assign ROM_ADDR = (RAM_Q);
 	assign LED[9:1] = (SW[0]) ? 9'hAA : (SW[1]) ? 9'hDD : 9'hFF;
-	assign LED[0] = (UART_DONE) ? 1'b1 : 1'b0;
+	assign LED[0] = ~rx;
+	assign RAM_DATA = (UART_DATA[2:0]);
 
 
 /*------------------------------------------------------*/
@@ -138,10 +139,10 @@ module uart2vga (
             .clk(clk_sys),
             .rst_n(rst_n),
             .rxd(rx),
-            .data(RAM_DATA),
+            .data(UART_DATA),
             .done(UART_DONE));
     defparam
-        UART_Controller.EIGHT_BIT_DATA  = 3,
+        UART_Controller.EIGHT_BIT_DATA  = 8,
         UART_Controller.PARITY_BIT      = 0,
         UART_Controller.STOP_BIT        = 2,
         UART_Controller.DEFAULT_BDR     = 115200;

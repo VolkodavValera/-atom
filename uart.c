@@ -3,6 +3,7 @@
 #include <string.h> // для работы со строками
 #include <stdlib.h> // для работы с памятью
 #include <locale.h>
+#include <unistd.h>
 
 #define baudrate CBR_115200
 #define bytesize 8
@@ -129,6 +130,7 @@ int main() {
     FILE *f;
     list *database = init();
     BOOL Status;
+    int n = 0;
 
     serialHandle = CreateFile(Handle_Name, GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
 
@@ -188,7 +190,7 @@ int main() {
         //Writing data to Serial Port
         Status = WriteFile(serialHandle,            // Handle to the Serialport
                            &SerialBuffer,           // Data to be written to the port
-                           sizeof(SerialBuffer),    // No of bytes to write into the port
+                           1,    // No of bytes to write into the port
                            &BytesWritten,           // No of bytes written to the port
                            NULL);
         if (Status == FALSE)
@@ -198,6 +200,8 @@ int main() {
         }
         //else printf("Greate write to COM\n");
         memset(str, '\0', strlen(str));
+        usleep(1000);
+        printf("%d\n", n++);
     }
 
     printf("The file has ended\n");

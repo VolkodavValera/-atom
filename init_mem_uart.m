@@ -7,31 +7,31 @@ f = fopen('init_mem_uart.txt', 'wt');
 for i = 1 : 307200
     ver = rand(1);
     srt = "111";
-    if (ver <= 0.5)
+    if (ver <= 0.55)
         srt = "100";
     end
 
-    if ((ver > 0.5) && (ver <= 0.7))
+    if ((ver > 0.55) && (ver <= 0.65))
         srt = "010";
     end
 
-    if ((ver > 0.7) && (ver <= 0.8))
+    if ((ver > 0.65) && (ver <= 0.7))
         srt = "110";
     end
 
-    if ((ver > 0.8) && (ver <= 0.85))
+    if ((ver > 0.7) && (ver <= 0.76))
         srt = "001";
     end
 
-    if ((ver > 0.85) && (ver <= 0.9))
+    if ((ver > 0.76) && (ver <= 0.8))
         srt = "000";
     end
 
-    if ((ver > 0.9) && (ver <= 0.94))
+    if ((ver > 0.8) && (ver <= 0.88))
         srt = "101";
     end
 
-    if ((ver > 0.94) && (ver <= 0.97))
+    if ((ver > 0.88) && (ver <= 0.95))
         srt = "011";
     end
 
