@@ -96,7 +96,9 @@ module uart2vga (
     assign ram_write = (UART_DONE_FF);
 	assign RAM_ADDR = ram_write ? ram_write_address : ram_read_address;
 	assign ROM_ADDR = (RAM_Q);
-	assign LED = (SW[0]) ? 10'h2AA : (SW[1]) ? 10'h1DD : 10'h3F1;
+	assign LED[9:1] = (SW[0]) ? 9'hAA : (SW[1]) ? 9'hDD : 9'hFF;
+	assign LED[0] = (UART_DONE) ? 1'b1 : 1'b0;
+
 
 /*------------------------------------------------------*/
 /*						Always blocks					*/

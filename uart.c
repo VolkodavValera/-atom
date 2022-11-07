@@ -2,11 +2,14 @@
 #include <stdio.h> // стандартная библиотека Си
 #include <string.h> // для работы со строками
 #include <stdlib.h> // для работы с памятью
+#include <locale.h>
 
 #define baudrate CBR_115200
-#define byteSize 3
+#define bytesize 8
 #define stopBits TWOSTOPBITS
 #define parity   NOPARITY
+
+char* Handle_Name = "\\\\.\\COM4";
 
 // структура элемента списка
 typedef struct list_item {
@@ -84,7 +87,7 @@ void insert(list *lst, int index, char *data) {
   lst->count++; // увеличим размер на единицу
 }
 
-int read(list *lst, char *data) {
+int comparison_with_list(list *lst, char *data) {
     int i = 0; // организуем счетчик
     list_item *base = lst->head; // перейдем к первому элементу
   	// воспользуемся функцией strcmp, чтобы сравнить перебираемые строки
@@ -93,6 +96,7 @@ int read(list *lst, char *data) {
       	base = base->next;
         i++;
     }
+    //printf("comp_int: %d\n", i);
     return i;
 }
 
@@ -111,12 +115,14 @@ list * init (){
 
 int main() {
 
+    setlocale(LC_ALL, "russian");
+
     // Open serial port
     HANDLE serialHandle;
     DCB serialParams = { 0 };
     COMMTIMEOUTS timeout = { 0 };
     DWORD BytesWritten = 0;          // No of bytes written to the port
-    char str[3];
+    char str[4];
     char *r_str;
     char SerialBuffer;
     char *estr;
@@ -124,7 +130,7 @@ int main() {
     list *database = init();
     BOOL Status;
 
-    serialHandle = CreateFile("\\\\.\\COM1", GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    serialHandle = CreateFile(Handle_Name, GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
 
     if (serialHandle == INVALID_HANDLE_VALUE)
         printf("Error in opening serial port\n");
@@ -141,7 +147,7 @@ int main() {
         printf("Greate getcomm\n");
 
     serialParams.BaudRate = baudrate;
-    serialParams.ByteSize = byteSize;
+    serialParams.ByteSize = bytesize;
     serialParams.StopBits = stopBits;
     serialParams.Parity = parity;
     Status = SetCommState(serialHandle, &serialParams);
@@ -169,25 +175,16 @@ int main() {
       return 1;
     }
 
-    while (1) {
-
+    while (!feof (f)) {
+        //printf("proc...\n");
         estr = fgets(str, sizeof(str), f);
-        if ( feof (f) != 0)
-         {
-            //Если файл закончился, выводим сообщение о завершении
-            //чтения и выходим из бесконечного цикла
-            printf ("\nЧтение файла закончено\n");
-            break;
-         }
-         else
-         {
-            //Если при чтении произошла ошибка, выводим сообщение
-            //об ошибке и выходим из бесконечного цикла
-            printf ("\nОшибка чтения из файла\n");
-            break;
-         }
-
-        SerialBuffer = read(database, str);
+        //printf("getted: %d\n", strlen(str));
+        if (strlen(str) == 1) continue;
+        /*printf("str: %c\n", str);
+        printf("estr: %c\n", estr);
+        printf("comp: %d\n", comparison_with_list(database, str));*/
+        SerialBuffer = comparison_with_list(database, str);
+        //printf ("\nRead file: %s\tSerial: %d\n", str, SerialBuffer);
         //Writing data to Serial Port
         Status = WriteFile(serialHandle,            // Handle to the Serialport
                            &SerialBuffer,           // Data to be written to the port
@@ -199,8 +196,11 @@ int main() {
             printf_s("\nFail to Written Port");
             return 1;
         }
+        //else printf("Greate write to COM\n");
+        memset(str, '\0', strlen(str));
     }
 
+    printf("The file has ended\n");
     CloseHandle(serialHandle);
 
     return 0;
