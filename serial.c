@@ -13,7 +13,7 @@ HANDLE serial_open(char* pname)
 	return serialHandle;
 }
 
-uint32_t serial_set(HANDLE h)
+uint32_t serial_set(HANDLE serialHandle)
 {
     DCB serialParams = { 0 };
     COMMTIMEOUTS timeout = { 0 };

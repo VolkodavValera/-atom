@@ -1,16 +1,26 @@
-#ifndef _LIST_
-#define _LIST_
+#ifndef __SERIAL__
+#define __SERIAL__
 
-#include <windows.h>
-#include <stdio.h> // стандартная библиотека Си
-#include <string.h> // для работы со строками
-#include <stdlib.h> // для работы с памятью
-#include <unistd.h>
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
+#include<sys/stat.h>
+#include<sys/types.h>
+#include<stddef.h>
+#include<unistd.h>
+#include<dirent.h>
+#include<fcntl.h>
+#include<windows.h>
+#include<time.h>
+#include <stdint.h>
 
 #define baudrate CBR_115200
 #define bytesize 8
 #define stopBits TWOSTOPBITS
 #define parity   EVENPARITY //NOPARITY
+
+#define FAULT (-1)
+#define OK    (0)
 
 HANDLE serial_open(char* pname);
 uint32_t serial_set(HANDLE h);
