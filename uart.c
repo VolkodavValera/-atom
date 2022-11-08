@@ -8,7 +8,7 @@
 #define baudrate CBR_115200
 #define bytesize 8
 #define stopBits TWOSTOPBITS
-#define parity   NOPARITY
+#define parity   EVENPARITY //NOPARITY
 
 char* Handle_Name = "\\\\.\\COM4";
 
@@ -200,7 +200,7 @@ int main() {
         }
         //else printf("Greate write to COM\n");
         memset(str, '\0', strlen(str));
-        usleep(1000);
+        //usleep(100);
         printf("%d\n", n++);
     }
 
