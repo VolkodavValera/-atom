@@ -13,6 +13,7 @@
 #define BYTE_SIZE_ROW           240
 #define BYTE_SIZE_Y             2
 #define BYTE_SIZE_STOP          1
+#define SIZE_BUFFER             BYTE_SIZE_Y + BYTE_SIZE_ROW + BYTE_SIZE_STOP
 #define NUMBER_ROWS             480
 #define SIZE_BYTE               8
 #define STOP_BYTE               0xDD
@@ -31,7 +32,7 @@ int main() {
     DWORD BytesWritten = 0;          // No of bytes written to the port
     unsigned char str[4];
     unsigned char data[WIDTH_DISPLAY];
-    unsigned char SerialBuffer[NUMBER_ROWS][BYTE_SIZE_Y + BYTE_SIZE_ROW + BYTE_SIZE_STOP];
+    unsigned char SerialBuffer[NUMBER_ROWS][SIZE_BUFFER];
     FILE *f;
     list *database = init_list();
     unsigned char rx_data;
@@ -45,23 +46,53 @@ int main() {
       return 1;
     }
 
+    /* ---------------------------------------------------- */
+    /* |                       word                       | */
+    /* ---------------------------------------------------- */
+    /* |                    SIZE_BUFFER                   | */
+    /* ---------------------------------------------------- */
+    /* |  NUMBER_ROWS  |      date        |    END_WORD   | */
+    /* ---------------------------------------------------- */
+    /* | BYTE_SIZE_Y  |   BYTE_SIZE_ROW  | BYTE_SIZE_STOP | */
+    /* ---------------------------------------------------- */
+
+    /*  Row - 640 pixel, data - 3 bit,  640 * 3 = 8 * 240   */
+
     for (size_t i = 0; i < NUMBER_ROWS; i++) {
+
+        // String value
         SerialBuffer[i][0] = i >> SIZE_BYTE;
         SerialBuffer[i][1] = (char) i;
-        SerialBuffer[i][BYTE_SIZE_Y + BYTE_SIZE_ROW + BYTE_SIZE_STOP] = STOP_BYTE;
+
+        // Line-by-line reading of data from a file and comparison with a palette
         for (size_t j = 0; j < WIDTH_DISPLAY; j++) {
             fgets(str, sizeof(str), f);
             if (strlen(str) == 1) fgets(str, sizeof(str), f);
             data[j] = comparison_with_list(database, str);
             memset(str, '\0', strlen(str));
         }
+
+        // Placing a line in the buffer
         if ( convert_bytes_to_bits(SerialBuffer[i] + BYTE_SIZE_Y, BYTE_SIZE_ROW, data, WIDTH_DISPLAY, 3) < 0 ) {
             printf ("convert error\n");
         }
+
+        //  End of the word
+        SerialBuffer[i][SIZE_BUFFER] = STOP_BYTE;
+        printf("SerialBuffer[%d][%d] (before) = %x\n", i, SIZE_BUFFER, SerialBuffer[i][SIZE_BUFFER]);
     }
+
     printf("convert greate\n");
+
+    for (size_t i = 0; i < NUMBER_ROWS; i++) {
+        printf("SerialBuffer[%d] = %d %d\n", i, SerialBuffer[i][0], SerialBuffer[i][1]);
+        printf("SerialBuffer[%d][%d] (after) = %x\n", i, SIZE_BUFFER, SerialBuffer[i][SIZE_BUFFER]);
+    }
+
+    printf("%x\n", STOP_BYTE);
+
     while (n != NUMBER_ROWS) {
-        if (serial_write(serialHandle, SerialBuffer[n], BYTE_SIZE_Y + BYTE_SIZE_ROW + BYTE_SIZE_STOP) < 0) {
+        if (serial_write(serialHandle, SerialBuffer[n], SIZE_BUFFER) < 0) {
             printf("Error write handle\n");
             return 1;
         }

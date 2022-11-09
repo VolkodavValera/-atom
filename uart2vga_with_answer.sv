@@ -15,7 +15,7 @@ module uart2vga_with_answer (
 	VGA_B,
 
     // UART
-    //tx,
+    tx,
     rx,
 
 	// Other
@@ -54,7 +54,7 @@ module uart2vga_with_answer (
 	output	[3:0]					VGA_G;	 				//	VGA Green[3:0]
 	output	[3:0]					VGA_B;   				//	VGA Blue[3:0]
 
-    //output                          tx;
+    output                          tx;
 
 	output 	[9:0]					LED;
 
@@ -135,7 +135,6 @@ module uart2vga_with_answer (
             .rst_n(rst_n),
             .rxd(rx),
             .data_rx(UART_DATA_RX),
-			.data_tx(UART_DATA_TX),
             .done(UART_DONE));
 	    defparam
 	        UART.EIGHT_BIT_DATA  = 8,
