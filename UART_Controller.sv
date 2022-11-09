@@ -178,7 +178,6 @@ localparam  STOP_WORD 		= 6;
 				end
 
 				CONVERT_BYTE_1: begin
-					//uart_data[3 * cnt_data : 3 * cnt_data + 2] 				<= data_rx[0:2];
 					uart_data[3 * cnt_data] 	<= data_rx[0];
 					uart_data[3 * cnt_data + 1] <= data_rx[1];
 					uart_data[3 * cnt_data + 2] <= data_rx[2];

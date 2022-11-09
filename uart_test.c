@@ -80,16 +80,16 @@ int main() {
         //  End of the word
         SerialBuffer[i][SIZE_BUFFER - 1] = STOP_BYTE;
         //printf("SerialBuffer[%d][%d] (before) = %x\n", i, SIZE_BUFFER, SerialBuffer[i][SIZE_BUFFER]);
-        if (i != 0) printf("SerialBuffer[%d][%d] = %x - SerialBuffer[%d][%d] = %x\n", i-1, SIZE_BUFFER, SerialBuffer[i-1][SIZE_BUFFER - 1], i, SIZE_BUFFER, SerialBuffer[i][SIZE_BUFFER - 1]);
+        //if (i != 0) printf("SerialBuffer[%d][%d] = %x - SerialBuffer[%d][%d] = %x\n", i-1, SIZE_BUFFER, SerialBuffer[i-1][SIZE_BUFFER - 1], i, SIZE_BUFFER, SerialBuffer[i][SIZE_BUFFER - 1]);
     }
 
     printf("convert greate\n");
-
+/*
     for (size_t i = 0; i < NUMBER_ROWS; i++) {
         printf("SerialBuffer[%d] = %d %d\n", i, SerialBuffer[i][0], SerialBuffer[i][1]);
         printf("SerialBuffer[%d][%d] (after) = %x\n", i, SIZE_BUFFER, SerialBuffer[i][SIZE_BUFFER - 1]);
     }
-
+*/
     printf("%x\n", STOP_BYTE);
 
     while (n != NUMBER_ROWS) {
