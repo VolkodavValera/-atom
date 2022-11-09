@@ -67,7 +67,7 @@ module uart2vga_with_answer (
 	wire 							clk_vga;
 
     // Other
-    logic   [18:0]                  cnt_received_uart_data;
+    logic   [9:0]                  cnt_received_uart_data;
 
 	// RAM
 	logic 	[2:0] 					RAM_Q;
@@ -84,29 +84,36 @@ module uart2vga_with_answer (
     // UART
     logic                           UART_DONE;
     logic                           UART_DONE_FF;
-    logic   []                   UART_DATA_RX;
+    logic   [3 * Wight - 1 : 0]     UART_DATA_RX;
+	logic 	[8:0] 					UART_ROW;
+
 
 /*----------------------------------------------------------------------------------*/
 /*								Сonnections											*/
 /*----------------------------------------------------------------------------------*/
-    assign ram_write_address = (cnt_received_uart_data);
+    assign ram_write_address = (UART_ROW * Height + cnt_received_uart_data);
     assign ram_write = (UART_DONE_FF);
+	assign RAM_DATA = (UART_DATA_RX >> (3 * cnt_received_uart_data));
+
 	assign RAM_ADDR = ram_write ? ram_write_address : ram_read_address;
 	assign ROM_ADDR = (RAM_Q);
 	assign LED[9:1] = (SW[0]) ? 9'hAA : (SW[1]) ? 9'hDD : 9'hFF;
-	assign LED[0] = ~rx;
+	assign LED[0] = UART_DONE_FF;
 
 /*----------------------------------------------------------------------------------*/
 /*								Always blocks										*/
 /*----------------------------------------------------------------------------------*/
-    always_ff @ (posedge clk_sys) begin
-        UART_DONE_FF <= UART_DONE;
-    end
-
-    always_ff @ (posedge clk_sys) begin
+	always_ff @ (posedge clk_sys) begin
         if (!rst_n) cnt_received_uart_data <= '0;
-        else if (UART_DONE_FF) begin
-            if (cnt_received_uart_data == MAX_ADDR_RAM) cnt_received_uart_data <= '0;
+        else if (UART_DONE) begin
+        	cnt_received_uart_data <= '0;
+			UART_DONE_FF <= 1'b1;
+        end
+		else begin
+            if (cnt_received_uart_data == Wight) begin
+            	cnt_received_uart_data <= '0;
+				UART_DONE_FF <= 1'b0;
+            end
             else cnt_received_uart_data++;
         end
     end
@@ -134,13 +141,17 @@ module uart2vga_with_answer (
             .clk(clk_sys),
             .rst_n(rst_n),
             .rxd(rx),
-            .data_rx(UART_DATA_RX),
+			.txd(tx),
+			.row(UART_ROW),
+            .uart_data(UART_DATA_RX),
             .done(UART_DONE));
 	    defparam
-	        UART.EIGHT_BIT_DATA  = 8,
-	        UART.PARITY_BIT      = 1,
-	        UART.STOP_BIT        = 2,
-	        UART.DEFAULT_BDR     = 115200;
+	        UART.EIGHT_BIT_DATA  	= 8,
+	        UART.PARITY_BIT      	= 1,
+	        UART.STOP_BIT        	= 2,
+	        UART.DEFAULT_BDR     	= 115200,
+			UART.Wight        		= Wight,
+			UART.Height     		= Height;
 
 /*----------------------------------------------------------------------------------*/
 /*									RAM												*/

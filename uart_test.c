@@ -78,15 +78,16 @@ int main() {
         }
 
         //  End of the word
-        SerialBuffer[i][SIZE_BUFFER] = STOP_BYTE;
-        printf("SerialBuffer[%d][%d] (before) = %x\n", i, SIZE_BUFFER, SerialBuffer[i][SIZE_BUFFER]);
+        SerialBuffer[i][SIZE_BUFFER - 1] = STOP_BYTE;
+        //printf("SerialBuffer[%d][%d] (before) = %x\n", i, SIZE_BUFFER, SerialBuffer[i][SIZE_BUFFER]);
+        if (i != 0) printf("SerialBuffer[%d][%d] = %x - SerialBuffer[%d][%d] = %x\n", i-1, SIZE_BUFFER, SerialBuffer[i-1][SIZE_BUFFER - 1], i, SIZE_BUFFER, SerialBuffer[i][SIZE_BUFFER - 1]);
     }
 
     printf("convert greate\n");
 
     for (size_t i = 0; i < NUMBER_ROWS; i++) {
         printf("SerialBuffer[%d] = %d %d\n", i, SerialBuffer[i][0], SerialBuffer[i][1]);
-        printf("SerialBuffer[%d][%d] (after) = %x\n", i, SIZE_BUFFER, SerialBuffer[i][SIZE_BUFFER]);
+        printf("SerialBuffer[%d][%d] (after) = %x\n", i, SIZE_BUFFER, SerialBuffer[i][SIZE_BUFFER - 1]);
     }
 
     printf("%x\n", STOP_BYTE);
@@ -96,14 +97,17 @@ int main() {
             printf("Error write handle\n");
             return 1;
         }
+        else printf("Write success\n");
         printf("wait answer\n");
-        if (serial_nb_read (serialHandle, &rx_data, 1, 0) < 0) {
+
+        if (serial_read (serialHandle, &rx_data, 1) < 0) {
             printf("Error read handle\n");
             return 1;
         }
+        else printf("Read success! RX_DATA = %x\n", rx_data);
         if (rx_data == SUCCESSFULLY_RECEIVED) n++;
         else if (rx_data == NOT_ALL_RECEIVED) {
-            serial_nb_read (serialHandle, &rx_data, 1, 0);
+            serial_read (serialHandle, &rx_data, 1);
             printf("The amount of data not received: %в\n", rx_data);
         }
         else {
