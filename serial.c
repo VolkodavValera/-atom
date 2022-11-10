@@ -22,6 +22,14 @@ uint32_t serial_set(HANDLE serialHandle)
     // Do some basic settings
     serialParams.DCBlength = sizeof(serialParams);
 
+    Status = SetupComm(serialHandle, 1024, 1024);
+    if (Status == FALSE){
+        printf("Error in setupcomm\n");
+        return FAULT;
+    }
+    else
+        printf("Greate setupcomm\n");
+
     Status = GetCommState(serialHandle, &serialParams);
     if (Status == FALSE){
         printf("Error in getcomm\n");

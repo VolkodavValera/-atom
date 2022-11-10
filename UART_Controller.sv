@@ -19,9 +19,10 @@ localparam  ROW_VALUE 		= 1;
 localparam  CONVERT_BYTE_1 	= 2;
 localparam  CONVERT_BYTE_2 	= 3;
 localparam  CONVERT_BYTE_3 	= 4;
-localparam  SUCCESS 		= 5;
+localparam  CHECK_END_WORD 	= 6;
+/*localparam  SUCCESS 		= 5;
 localparam  STOP_WORD 		= 6;
-
+*/
 /*----------------------------------------------------------------------------------*/
 /*									Input											*/
 /*----------------------------------------------------------------------------------*/
@@ -50,7 +51,7 @@ localparam  STOP_WORD 		= 6;
 	logic [2:0] 					state;
 	logic 							answer;
 	logic 							answer_err;
-	logic [9:0] 					cnt_data = '0;
+	logic [7:0] 					cnt_data;
 
 
 
@@ -116,24 +117,31 @@ localparam  STOP_WORD 		= 6;
 				end
 
 				CONVERT_BYTE_1: begin
-					if (data_rx == END_WORD) state <= STOP_WORD;
-					else if (cnt_data == Wight) state <= SUCCESS;
-					else state <= CONVERT_BYTE_2;
+					/*if (data_rx == END_WORD) state <= STOP_WORD;
+					else if (cnt_data == Wight) state <= CHECK_END_WORD;
+					else
+					state <= CONVERT_BYTE_2;*/
+					if (cnt_data == 8'd239) state <= CHECK_END_WORD;
 				end
-
+/*
 				CONVERT_BYTE_2: begin
 					if (data_rx == END_WORD) state <= STOP_WORD;
-					else if (cnt_data == Wight) state <= SUCCESS;
-					else state <= CONVERT_BYTE_3;
+					else if (cnt_data == Wight) state <= CHECK_END_WORD;
+					else
+					state <= CONVERT_BYTE_3;
 				end
 
 				CONVERT_BYTE_3: begin
 					if (data_rx == END_WORD) state <= STOP_WORD;
-					else if (cnt_data == Wight) state <= SUCCESS;
+					else
+					if (cnt_data == (Wight - 3)) state <= CHECK_END_WORD;
 					else state <= CONVERT_BYTE_1;
 				end
-
-
+*/
+				CHECK_END_WORD: begin
+					state <= START_WORD;
+				end
+/*
 				SUCCESS: begin
 					state <= START_WORD;
 				end
@@ -141,7 +149,7 @@ localparam  STOP_WORD 		= 6;
 				STOP_WORD: begin
 					state <= START_WORD;
 				end
-
+*/
 				default: state <= START_WORD;
 			endcase
 		end
@@ -174,22 +182,26 @@ localparam  STOP_WORD 		= 6;
 				end
 
 				ROW_VALUE: begin
-					row[7:0] <= data_rx;
+					if (done_byte) begin
+						row[7:0] <= data_rx;
+					end
 				end
 
 				CONVERT_BYTE_1: begin
-					uart_data[3 * cnt_data] 	<= data_rx[0];
-					uart_data[3 * cnt_data + 1] <= data_rx[1];
-					uart_data[3 * cnt_data + 2] <= data_rx[2];
-					uart_data[3 * cnt_data + 3] <= data_rx[3];
-					uart_data[3 * cnt_data + 4] <= data_rx[4];
-					uart_data[3 * cnt_data + 5] <= data_rx[5];
-					uart_data[3 * cnt_data + 6] <= data_rx[6];
-					uart_data[3 * cnt_data + 7] <= data_rx[7];
+					if (done_byte) begin
+						uart_data[8 * cnt_data] 	<= data_rx[0];
+						uart_data[8 * cnt_data + 1] <= data_rx[1];
+						uart_data[8 * cnt_data + 2] <= data_rx[2];
+						uart_data[8 * cnt_data + 3] <= data_rx[3];
+						uart_data[8 * cnt_data + 4] <= data_rx[4];
+						uart_data[8 * cnt_data + 5] <= data_rx[5];
+						uart_data[8 * cnt_data + 6] <= data_rx[6];
+						uart_data[8 * cnt_data + 7] <= data_rx[7];
 
-					cnt_data 					<= cnt_data + 2;
+						cnt_data++;
+					end
 				end
-
+/*
 				CONVERT_BYTE_2: begin
 					uart_data[3 * cnt_data + 2] <= data_rx[0];
 					uart_data[3 * cnt_data + 3] <= data_rx[1];
@@ -215,8 +227,21 @@ localparam  STOP_WORD 		= 6;
 
 					cnt_data 					<= cnt_data + 3;
 				end
-
-
+*/
+				CHECK_END_WORD: begin
+					if (done_byte) begin
+						if (data_rx == END_WORD) begin
+							done 	<= 1'b1;
+							data_tx <= SUCCESSFULLY_RECEIVED;
+							answer 	<= 1'b1;
+						end
+						else begin
+							data_tx <= NOT_ALL_RECEIVED;
+							answer 	<= 1'b1;
+						end
+					end
+				end
+/*
 				SUCCESS: begin
 					done 	<= 1'b1;
 					data_tx <= SUCCESSFULLY_RECEIVED;
@@ -227,7 +252,7 @@ localparam  STOP_WORD 		= 6;
 					data_tx <= NOT_ALL_RECEIVED;
 					answer 	<= 1'b1;
 				end
-
+*/
 				default: begin
 					row 		<= '0;
 					uart_data 	<= '0;

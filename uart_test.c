@@ -107,7 +107,7 @@ int main() {
         else printf("Read success! RX_DATA = %x\n", rx_data);
         if (rx_data == SUCCESSFULLY_RECEIVED) n++;
         else if (rx_data == NOT_ALL_RECEIVED) {
-            serial_read (serialHandle, &rx_data, 1);
+            //serial_read (serialHandle, &rx_data, 1);
             printf("The amount of data not received: %в\n", rx_data);
         }
         else {

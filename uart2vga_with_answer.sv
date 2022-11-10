@@ -149,7 +149,7 @@ module uart2vga_with_answer (
 	        UART.EIGHT_BIT_DATA  	= 8,
 	        UART.PARITY_BIT      	= 1,
 	        UART.STOP_BIT        	= 2,
-	        UART.DEFAULT_BDR     	= 115200,
+	        UART.DEFAULT_BDR     	= 9600,
 			UART.Wight        		= Wight,
 			UART.Height     		= Height;
 
