@@ -1,5 +1,58 @@
 //`include "vga_avalon.svh"
 
+/*
+
+		+-----------+			+---------------------------------------------------------------+
+		|			| data_rx	|						UART_Controller							|
+------->|  UART_RX	|---------->|	1) string value												|
+		|			|			|		UART_ROW = {data_rx_1[0], data_rx_2};					|
+		+-----------+			|																|
+								|	2) basic data												|	UART_ROW
+								|		UART_DATA_RX = {data_rx_3, data_rx_4, ..., data_rx_242};|----------------
+		+-----------+			|																|				|
+		|			|  data_tx	|	3) the final meaning of the word							|				|
+<-------|  UART_TX	|<----------|		if (data_rx_243 - end of the word) {					|				|
+		|			|			|			data_tx = SUCCESSFULLY_RECEIVED;					|				|
+		+-----------+			|			UART_DONE = 1;										|				|
+								|		} else data_tx = NOT_ALL_RECEIVED;						|				|
+								+---------------------------------------------------------------+				|
+																 |												|
+												uart_data		 |												|
+																\/												|
+																												|
+										RAM_DATA = uart_data[2:0] >> (3 * cnt_received_uart_data)				|
+																												|
+																 |												|
+												RAM_DATA		 |												|
+										   						\/												|
+													+-----------------------+									|
+							RAM_ADDR_READ			|						| 		RAM_ADDR_WRITE				|
+					------------------------------->|			RAM			|<-----------------------------------
+					|								|						| UART_ROW * Wight + cnt_received_uart_data
+					|								+-----------------------+
+					|											 |
+					|							RAM_Q			 |
+					|											\/
+					|								+-----------------------+
+					|								|						|
+					|								|			ROM			|
+					|								|						|
+					|								+-----------------------+
+					|											|
+					|						   ROM_Q			|
+					|										   \/
+		+-------------------------------------------------------------------+
+		|						VGA_Controller								|
+  VGA	|																	|
+<=======|	1) RAM_ADDR = Current_Y * Wight + Current_X						|
+		|																	|
+		|	2) RGB = ROM_Q													|
+		|																	|
+		+-------------------------------------------------------------------+
+*/
+
+
+
 module uart2vga_with_answer (
 	// Clock
 	clk,
@@ -91,7 +144,7 @@ module uart2vga_with_answer (
 /*----------------------------------------------------------------------------------*/
 /*								Сonnections											*/
 /*----------------------------------------------------------------------------------*/
-    assign ram_write_address = (UART_ROW * Height + cnt_received_uart_data);
+    assign ram_write_address = (UART_ROW * Wight + cnt_received_uart_data);
     assign ram_write = (UART_DONE_FF);
 	assign RAM_DATA = (UART_DATA_RX >> (3 * cnt_received_uart_data));
 
