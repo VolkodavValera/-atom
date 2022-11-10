@@ -19,10 +19,11 @@ localparam  ROW_VALUE 		= 1;
 localparam  CONVERT_BYTE_1 	= 2;
 localparam  CONVERT_BYTE_2 	= 3;
 localparam  CONVERT_BYTE_3 	= 4;
-localparam  CHECK_END_WORD 	= 6;
+localparam  CHECK_END_WORD 	= 5;
 /*localparam  SUCCESS 		= 5;
 localparam  STOP_WORD 		= 6;
 */
+
 /*----------------------------------------------------------------------------------*/
 /*									Input											*/
 /*----------------------------------------------------------------------------------*/
@@ -59,7 +60,6 @@ localparam  STOP_WORD 		= 6;
 /*									Сonnections										*/
 /*----------------------------------------------------------------------------------*/
 	assign start_tx = answer | answer_err;
-
 
 /*----------------------------------------------------------------------------------*/
 /*									Always blocks									*/
@@ -121,7 +121,7 @@ localparam  STOP_WORD 		= 6;
 					else if (cnt_data == Wight) state <= CHECK_END_WORD;
 					else
 					state <= CONVERT_BYTE_2;*/
-					if (cnt_data == 8'd239) state <= CHECK_END_WORD;
+					if (cnt_data == 8'd238) state <= CHECK_END_WORD;
 				end
 /*
 				CONVERT_BYTE_2: begin
