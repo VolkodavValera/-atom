@@ -2,19 +2,19 @@
 
 /*
 
-		+-----------+			+---------------------------------------------------------------+
-		|			| data_rx	|						UART_Controller							|
-=======>|  UART_RX	|---------->|	1) string value												|
-		|			|			|		UART_ROW = {data_rx_1[0], data_rx_2};					|
-		+-----------+			|																|
-								|	2) basic data												|	UART_ROW
-								|		UART_DATA_RX = {data_rx_3, data_rx_4, ..., data_rx_242};|----------------
-		+-----------+			|																|				|
-		|			|  data_tx	|	3) the final meaning of the word							|				|
-<=======|  UART_TX	|<----------|		if (data_rx_243 - end of the word) {					|				|
-		|			|			|			data_tx = SUCCESSFULLY_RECEIVED;					|				|
-		+-----------+			|			UART_DONE = 1;										|				|
-								|		} else data_tx = NOT_ALL_RECEIVED;						|				|
+								+---------------------------------------------------------------+
+								|							ARINC708RX							|
+								|																|
+								|																|
+								|																|
+								|																|	UART_ROW
+								|																|----------------
+								|																|				|
+								|																|				|
+								|																|				|
+								|																|				|
+								|																|				|
+								|																|				|
 								+---------------------------------------------------------------+				|
 																 |												|
 												uart_data		 |												|
@@ -53,7 +53,7 @@
 
 
 
-module uart2vga_with_answer (
+module arinc2vga (
 	// Clock
 	clk,
 
@@ -68,8 +68,8 @@ module uart2vga_with_answer (
 	VGA_B,
 
     // UART
-    tx,
-    rx,
+    ain,
+    bin,
 
 	// Other
 	SW,
@@ -88,13 +88,16 @@ module uart2vga_with_answer (
 	localparam READ_DATA		= 2;
 	localparam FIFO_ARINC_EMPTY	= 3;
 
+	localparam FIFO_WIDTHU		= clog2_func(FIFO_NUMWORDS + 1);
+
 /*----------------------------------------------------------------------------------*/
 /*									Input											*/
 /*----------------------------------------------------------------------------------*/
 	input							clk;
 	input							rst_n;
 
-    input                           rx;
+    input                           ain;
+	input                           bin;
 
 	input [1:0]						SW;
 
@@ -107,8 +110,6 @@ module uart2vga_with_answer (
 	output	[3:0]					VGA_G;	 				//	VGA Green[3:0]
 	output	[3:0]					VGA_B;   				//	VGA Blue[3:0]
 
-    output                          tx;
-
 	output 	[9:0]					LED;
 
 /*----------------------------------------------------------------------------------*/
@@ -120,7 +121,8 @@ module uart2vga_with_answer (
 	wire 							clk_vga;
 
     // Other
-    logic   [9:0]                  cnt_received_uart_data;
+    logic   [9:0]                  	cnt_received_arinc_data = '0;
+	logic	[8:0]					angle;
 
 	// RAM
 	logic 	[2:0] 					RAM_Q;
@@ -134,41 +136,45 @@ module uart2vga_with_answer (
 	wire 	[11:0]					ROM_Q;
 	wire 	[2:0]					ROM_ADDR;
 
-    // UART
-    logic                           UART_DONE;
-    logic                           UART_DONE_FF;
-    logic   [3 * Wight - 1 : 0]     UART_DATA_RX;
-	logic 	[8:0] 					UART_ROW;
+    // ARINC
+	wire 							write_arinc;
+	wire 							read_arinc;
+	logic	[31:0]					writedata_arinc;
+	logic	[31:0]					readdata_arinc;
+	//logic	[FIFO_WIDTHU - 1:0]		address_arinc;
+	logic 							done_arinc;
+
+	// FIFO
+	wire 							fifo_rdreq;
+	wire 							fifo_wrreq;
+	wire [2:0]						fifo_data;
+	wire [2:0]						fifo_q;
+	wire 							fifo_empty;
+	wire 							fifo_full;
 
 
 /*----------------------------------------------------------------------------------*/
 /*								Сonnections											*/
 /*----------------------------------------------------------------------------------*/
-    assign ram_write_address = (UART_ROW * Wight + cnt_received_uart_data);
-    assign ram_write = (UART_DONE_FF);
-	assign RAM_DATA = (UART_DATA_RX >> (3 * cnt_received_uart_data));
+	assign fifo_wrreq = (read_arinc);
+	assign fifo_data = (readdata_arinc);
+
+
+
+	assign ram_write_address = ();
+    assign ram_write = ();
+	assign RAM_DATA = ();
 
 	assign RAM_ADDR = ram_write ? ram_write_address : ram_read_address;
 	assign ROM_ADDR = (RAM_Q);
 	assign LED[9:1] = (SW[0]) ? 9'hAA : (SW[1]) ? 9'hDD : 9'hFF;
-	assign LED[0] = UART_DONE_FF;
+	assign LED[0] = ;
 
 /*----------------------------------------------------------------------------------*/
 /*								Always blocks										*/
 /*----------------------------------------------------------------------------------*/
 	always_ff @ (posedge clk_sys) begin
-        if (!rst_n) cnt_received_uart_data <= '0;
-        else if (UART_DONE) begin
-        	cnt_received_uart_data <= '0;
-			UART_DONE_FF <= 1'b1;
-        end
-		else begin
-            if (cnt_received_uart_data == Wight) begin
-            	cnt_received_uart_data <= '0;
-				UART_DONE_FF <= 1'b0;
-            end
-            else cnt_received_uart_data++;
-        end
+
     end
 
 /*----------------------------------------------------------------------------------*/
@@ -190,21 +196,28 @@ module uart2vga_with_answer (
 			.VGA_B(VGA_B),
 			.SW(SW));
 
-    UART_Controller UART(
+    arinc708rx ARINC(
             .clk(clk_sys),
             .rst_n(rst_n),
-            .rxd(rx),
-			.txd(tx),
-			.row(UART_ROW),
-            .uart_data(UART_DATA_RX),
-            .done(UART_DONE));
-	    defparam
-	        UART.EIGHT_BIT_DATA  	= 8,
-	        UART.PARITY_BIT      	= 1,
-	        UART.STOP_BIT        	= 2,
-	        UART.DEFAULT_BDR     	= 9600,
-			UART.Wight        		= Wight,
-			UART.Height     		= Height;
+			.address(4`d2),
+			.read(),
+			.readdata(readdata_arinc),
+			.write(write_arinc),
+			.writedata(writedata_arinc),
+			.ain(ain),
+			.bin(bin),
+			.irq(read_arinc),
+			.done(done_arinc)
+		);
+
+	arinc2fifo BUFER(
+			.clk(clk_sys),
+			.rst_n(rst_n),
+		    .angle(angle),
+		    .arinc_data(readdata_arinc),
+		    .fifo_data(fifo_data),
+		    .read_arinc_data(read_arinc),
+		    .fifo_write(fifo_wrreq));
 
 /*----------------------------------------------------------------------------------*/
 /*									RAM												*/
@@ -363,5 +376,31 @@ module uart2vga_with_answer (
 			ROM_Palitra.width_a = 12,
 			ROM_Palitra.width_byteena_a = 1;
 
+/*----------------------------------------------------------------------------------*/
+/*									FIFO											*/
+/*----------------------------------------------------------------------------------*/
+	scfifo fifo_arinc
+	(
+		.rdreq(fifo_rdreq),
+		.aclr(~rst_n),
+		.clock(clk),
+		.wrreq(fifo_wrreq),
+		.data(fifo_data),
+		.empty(fifo_empty),
+		.full(fifo_full),
+		.q(fifo_q)
+	);
 
-endmodule: uart2vga_with_answer
+	defparam
+		fifo_arinc.add_ram_output_register = "OFF",
+		fifo_arinc.intended_device_family = "MAX 10",
+		fifo_arinc.lpm_numwords = 512,
+		fifo_arinc.lpm_showahead = "OFF",
+		fifo_arinc.lpm_type = "scfifo",
+		fifo_arinc.lpm_width = 3,
+		fifo_arinc.lpm_widthu = 9,
+		fifo_arinc.overflow_checking = "ON",
+		fifo_arinc.underflow_checking = "ON",
+		fifo_arinc.use_eab = "ON";
+
+endmodule: arinc2vga
