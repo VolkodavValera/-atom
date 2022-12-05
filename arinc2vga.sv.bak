@@ -83,6 +83,12 @@ module arinc2vga (
     parameter Wight             = 640;
     parameter Height            = 480;
     localparam MAX_ADDR_RAM   	= Wight * Height;
+	localparam WAIT_ARINC		= 0;
+	localparam FIFO_ARINC_FULL 	= 1;
+	localparam READ_DATA		= 2;
+	localparam FIFO_ARINC_EMPTY	= 3;
+
+	localparam FIFO_WIDTHU		= clog2_func(FIFO_NUMWORDS + 1);
 
 /*----------------------------------------------------------------------------------*/
 /*									Input											*/
@@ -150,10 +156,13 @@ module arinc2vga (
 /*----------------------------------------------------------------------------------*/
 /*								Сonnections											*/
 /*----------------------------------------------------------------------------------*/
+	assign fifo_wrreq = (read_arinc);
+	assign fifo_data = (readdata_arinc);
+
 	assign RAM_ADDR = ram_write ? ram_write_address : ram_read_address;
 	assign ROM_ADDR = (RAM_Q);
 	assign LED[9:1] = (SW[0]) ? 9'hAA : (SW[1]) ? 9'hDD : 9'hFF;
-	assign LED[0] = ram_write;
+	assign LED[0] = ;
 
 /*----------------------------------------------------------------------------------*/
 /*								Always blocks										*/
@@ -182,7 +191,7 @@ module arinc2vga (
 			.SW(SW));
 
     arinc708rx ARINC(
-            .clk_drv(clk_sys),
+            .clk(clk_sys),
             .rst_n(rst_n),
 			.address(4`d2),
 			.read(),
@@ -204,7 +213,7 @@ module arinc2vga (
 		    .read_arinc_data(read_arinc),
 		    .fifo_write(fifo_wrreq));
 
-	fifo2ram Signal_Handler(
+	fifo2ram (
 			.clk(clk_sys),
 			.rst_n(rst_n),
 			.angle(angle),
