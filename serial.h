@@ -17,7 +17,7 @@
 #define baudrate CBR_9600
 #define bytesize 8
 #define stopBits TWOSTOPBITS
-#define parity   EVENPARITY //NOPARITY
+#define parity   NOPARITY //EVENPARITY
 
 #define FAULT (-1)
 #define OK    (0)

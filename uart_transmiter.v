@@ -15,10 +15,10 @@ module uart_transmiter(clk,start_strobe,data,txd,busy);
 		parameter PARITY_BIT       = 0;
 		parameter STOP_BIT         = 2;
 		parameter DEFAULT_BDR      = 115200;
+		parameter SYS_CLK_DIV2		= 100_000_000;
 
 		localparam  CLR 			= 0;
 		localparam  SET 			= 1;
-		localparam  SYS_CLK_DIV2 	= 100_000_000;
 
 		input	clk;
 		input	start_strobe;

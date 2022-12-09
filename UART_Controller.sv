@@ -9,17 +9,22 @@ parameter DEFAULT_BDR      		= 115200;
 parameter END_WORD 				= 8'hDD;
 parameter SUCCESSFULLY_RECEIVED	= 8'hFF;
 parameter NOT_ALL_RECEIVED 		= 8'h11;
-
+parameter ANSWER_CODE 			= 8'hAA;
+parameter VALUE_PAUSE			= 8'hFF;
 
 parameter Wight             = 640;
 parameter Height            = 480;
+parameter SYS_CLK_DIV2		= 100_000_000;
 
 localparam  START_WORD 		= 0;
-localparam  ROW_VALUE 		= 1;
-localparam  CONVERT_BYTE_1 	= 2;
-localparam  CONVERT_BYTE_2 	= 3;
-localparam  CONVERT_BYTE_3 	= 4;
-localparam  CHECK_END_WORD 	= 5;
+localparam  FEEDBACK_START	= 1;
+localparam  ROW_VALUE 		= 2;
+localparam  FEEDBACK_ROW	= 3;
+localparam  CONVERT_BYTE_1 	= 4;
+localparam  FEEDBACK_CONVERT= 5;
+/*localparam  CONVERT_BYTE_2 	= 3;
+localparam  CONVERT_BYTE_3 	= 4;*/
+localparam  CHECK_END_WORD 	= 6;
 /*localparam  SUCCESS 		= 5;
 localparam  STOP_WORD 		= 6;
 */
@@ -53,6 +58,9 @@ localparam  STOP_WORD 		= 6;
 	logic 							answer;
 	logic 							answer_err;
 	logic [7:0] 					cnt_data;
+	logic [7:0] 					cnt_pause;
+	logic 							pause;
+
 
 
 
@@ -71,6 +79,16 @@ localparam  STOP_WORD 		= 6;
 		else answer_err <= '0;
 	end
 
+	always_ff @ (posedge clk) begin
+		if (state == FEEDBACK_START || state == FEEDBACK_ROW || state == FEEDBACK_CONVERT ) cnt_pause++;
+		else cnt_pause <= '0;
+	end
+
+	always_ff @ (posedge clk) begin
+		if (cnt_pause == 4'hF) pause <= 1'b1;
+		else pause <= 1'b0;
+	end
+
 /*----------------------------------------------------------------------------------*/
 /*										Modules										*/
 /*----------------------------------------------------------------------------------*/
@@ -86,7 +104,8 @@ localparam  STOP_WORD 		= 6;
         UART_RX.EIGHT_BIT_DATA  = EIGHT_BIT_DATA,
         UART_RX.PARITY_BIT      = PARITY_BIT,
         UART_RX.STOP_BIT        = STOP_BIT,
-        UART_RX.DEFAULT_BDR     = DEFAULT_BDR;
+        UART_RX.DEFAULT_BDR     = DEFAULT_BDR,
+		UART_RX.SYS_CLK_DIV2	= SYS_CLK_DIV2;
 
     uart_transmiter UART_TX(
                     .clk(clk),
@@ -98,22 +117,31 @@ localparam  STOP_WORD 		= 6;
         UART_TX.EIGHT_BIT_DATA  = EIGHT_BIT_DATA,
         UART_TX.PARITY_BIT      = PARITY_BIT,
         UART_TX.STOP_BIT        = STOP_BIT,
-        UART_TX.DEFAULT_BDR     = DEFAULT_BDR;
+        UART_TX.DEFAULT_BDR     = DEFAULT_BDR,
+		UART_TX.SYS_CLK_DIV2	= SYS_CLK_DIV2;
 /*----------------------------------------------------------------------------------*/
 /*									State Mashines									*/
 /*----------------------------------------------------------------------------------*/
 	// State
 	always_ff @ (posedge clk) begin
 		if (!rst_n) state <= START_WORD;
-		else if (done_byte) begin
+		else begin
 			case (state)
 
 				START_WORD: begin
-					state <= ROW_VALUE;
+					if (done_byte) state <= FEEDBACK_START;
+				end
+
+				FEEDBACK_START: begin
+					if (pause) state <= ROW_VALUE;
 				end
 
 				ROW_VALUE: begin
-					state <= CONVERT_BYTE_1;
+					if (done_byte) state <= FEEDBACK_ROW;
+				end
+
+				FEEDBACK_ROW: begin
+					if (pause) state <= CONVERT_BYTE_1;
 				end
 
 				CONVERT_BYTE_1: begin
@@ -121,7 +149,14 @@ localparam  STOP_WORD 		= 6;
 					else if (cnt_data == Wight) state <= CHECK_END_WORD;
 					else
 					state <= CONVERT_BYTE_2;*/
-					if (cnt_data == 8'd238) state <= CHECK_END_WORD;
+					if (done_byte) begin
+						if (cnt_data == 8'd238) state <= CHECK_END_WORD;
+						else state <= FEEDBACK_CONVERT;
+					end
+				end
+
+				FEEDBACK_CONVERT: begin
+					if (pause) state <= CONVERT_BYTE_1;
 				end
 /*
 				CONVERT_BYTE_2: begin
@@ -139,7 +174,7 @@ localparam  STOP_WORD 		= 6;
 				end
 */
 				CHECK_END_WORD: begin
-					state <= START_WORD;
+					if (done_byte) state <= START_WORD;
 				end
 /*
 				SUCCESS: begin
@@ -163,7 +198,6 @@ localparam  STOP_WORD 		= 6;
 			answer 		<= '0;
 			cnt_data	<= '0;
 			done		<= '0;
-			answer		<= '0;
 			data_tx		<= '0;
 		end
 		else if (data_tx <= NOT_ALL_RECEIVED && busy_neg) begin
@@ -175,19 +209,33 @@ localparam  STOP_WORD 		= 6;
 				START_WORD: begin
 					row[8] 		<= data_rx[0];
 					uart_data 	<= '0;
-					answer 		<= '0;
 					cnt_data	<= '0;
 					done		<= '0;
 					answer		<= '0;
 				end
 
+				FEEDBACK_START: begin
+					if (pause) begin
+						data_tx <= ANSWER_CODE;
+						answer <= 1'b1;
+					end
+				end
+
 				ROW_VALUE: begin
+					answer <= 1'b0;
+
 					if (done_byte) begin
 						row[7:0] <= data_rx;
 					end
 				end
 
+				FEEDBACK_ROW: begin
+					if (pause) answer <= 1'b1;
+				end
+
 				CONVERT_BYTE_1: begin
+					answer <= 1'b0;
+
 					if (done_byte) begin
 						uart_data[8 * cnt_data] 	<= data_rx[0];
 						uart_data[8 * cnt_data + 1] <= data_rx[1];
@@ -200,6 +248,10 @@ localparam  STOP_WORD 		= 6;
 
 						cnt_data++;
 					end
+				end
+
+				FEEDBACK_CONVERT: begin
+					if (pause) answer <= 1'b1;
 				end
 /*
 				CONVERT_BYTE_2: begin
@@ -259,7 +311,6 @@ localparam  STOP_WORD 		= 6;
 					answer 		<= '0;
 					cnt_data	<= '0;
 					done		<= '0;
-					answer		<= '0;
 					data_tx		<= '0;
 				end
 			endcase

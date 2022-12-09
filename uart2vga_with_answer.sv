@@ -82,11 +82,17 @@ module uart2vga_with_answer (
 	parameter ADDRESS_WIDTH		= 3;
     parameter Wight             = 640;
     parameter Height            = 480;
+	parameter FREQ_MHZ	 		= 50;
+	parameter FREQ_MULT_SYS		= 2;
+	parameter FREQ_DIV_SYS		= 1;
+
     localparam MAX_ADDR_RAM   	= Wight * Height;
 	localparam WAIT_ARINC		= 0;
 	localparam FIFO_ARINC_FULL 	= 1;
 	localparam READ_DATA		= 2;
 	localparam FIFO_ARINC_EMPTY	= 3;
+	localparam FREQUENCY 		= FREQ_MHZ * 1_000_000;
+	localparam FREQUENCY_SYS	= FREQUENCY * FREQ_MULT_SYS / FREQ_DIV_SYS;
 
 /*----------------------------------------------------------------------------------*/
 /*									Input											*/
@@ -200,9 +206,12 @@ module uart2vga_with_answer (
             .done(UART_DONE));
 	    defparam
 	        UART.EIGHT_BIT_DATA  	= 8,
-	        UART.PARITY_BIT      	= 1,
+	        UART.PARITY_BIT      	= 0,
 	        UART.STOP_BIT        	= 2,
 	        UART.DEFAULT_BDR     	= 9600,
+			UART.ANSWER_CODE		= 8'hAA,
+			UART.VALUE_PAUSE		= 8'hFF,
+			UART.SYS_CLK_DIV2		= FREQUENCY_SYS,
 			UART.Wight        		= Wight,
 			UART.Height     		= Height;
 
@@ -274,7 +283,7 @@ module uart2vga_with_answer (
 		defparam
 			PLL_VGA.bandwidth_type = "AUTO",
 			PLL_VGA.clk0_divide_by = 2000,
-			PLL_VGA.clk0_duty_cycle = 50,
+			PLL_VGA.clk0_duty_cycle = FREQ,
 			PLL_VGA.clk0_multiply_by = 1007,
 			PLL_VGA.clk0_phase_shift = "0",
 			PLL_VGA.compensate_clock = "CLK0",
@@ -309,9 +318,9 @@ module uart2vga_with_answer (
                         .scanwrite (1'b0));
 		defparam
 	        PLL_SYSTEM.bandwidth_type = "AUTO",
-	        PLL_SYSTEM.clk0_divide_by = 36,
-	        PLL_SYSTEM.clk0_duty_cycle = 50,
-	        PLL_SYSTEM.clk0_multiply_by = 103,
+	        PLL_SYSTEM.clk0_divide_by = FREQ_DIV_SYS,
+	        PLL_SYSTEM.clk0_duty_cycle = FREQ,
+	        PLL_SYSTEM.clk0_multiply_by = FREQ_MULT_SYS,
 	        PLL_SYSTEM.clk0_phase_shift = "0",
 	        PLL_SYSTEM.compensate_clock = "CLK0",
 	        PLL_SYSTEM.inclk0_input_frequency = 20000,

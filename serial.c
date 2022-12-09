@@ -111,8 +111,10 @@ uint32_t serial_read(HANDLE h, uint8_t* buffer, uint32_t size)
 uint32_t serial_write(HANDLE h, uint8_t* buffer, uint32_t size)
 {
 	DWORD n = 0;
-	uint32_t m = 0;
 
+
+#if 0
+	uint32_t m = 0;
 	while(m < size)
 	{
 
@@ -124,6 +126,20 @@ uint32_t serial_write(HANDLE h, uint8_t* buffer, uint32_t size)
 		m += n;
 		buffer += n;
 	}
+#else
+	while(size)
+	{
+
+		if(!WriteFile(h, buffer, 1, &n, NULL))
+		{
+			return FAULT;
+		}
+
+		size -= n;
+		buffer += n;
+	}
+
+#endif
 
 	return OK;
 }

@@ -10,14 +10,15 @@
 //-------------------------------------------------------------------------------------------------
 module uart_receiver(clk,rst_n,rxd,data,done);
 
-		parameter EIGHT_BIT_DATA   = 8;
-		parameter PARITY_BIT       = 0;
-		parameter STOP_BIT         = 2;
-		parameter DEFAULT_BDR      = 115200;
+		parameter EIGHT_BIT_DATA   	= 8;
+		parameter PARITY_BIT       	= 0;
+		parameter STOP_BIT         	= 2;
+		parameter DEFAULT_BDR      	= 115200;
+		parameter SYS_CLK_DIV2		= 100_000_000;
+
 
 		localparam  CLR 			= 0;
 		localparam  SET 			= 1;
-		localparam  SYS_CLK_DIV2 	= 100_000_000;
 
 		input   clk;
 		input   rst_n;

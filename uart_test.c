@@ -19,6 +19,7 @@
 #define STOP_BYTE               0xDD
 #define SUCCESSFULLY_RECEIVED   0xFF
 #define NOT_ALL_RECEIVED        0x11
+#define ANSWER_CODE             0xAA
 
 char* Handle_Name   = "\\\\.\\COM4";
 char* File_Name     = "init_mem_uart2.txt";
@@ -36,7 +37,7 @@ int main() {
     FILE *f;
     list *database = init_list();
     unsigned char rx_data;
-    int n = 0;
+    int n = 0, m = 0;
 
     serialHandle = serial_init(Handle_Name);
 
@@ -91,7 +92,12 @@ int main() {
     }
 */
     printf("%x\n", STOP_BYTE);
+    printf("/-----------------------------------/\n");
+    printf("/---------------START---------------/\n");
+    printf("/-----------------------------------/\n\n");
 
+
+#if 0
     while (n != NUMBER_ROWS) {
         if (serial_write(serialHandle, SerialBuffer[n], SIZE_BUFFER) < 0) {
             printf("Error write handle\n");
@@ -116,7 +122,32 @@ int main() {
         }
     }
 
+#else
+    while (n != NUMBER_ROWS) {
+        if (serial_write(serialHandle, SerialBuffer[n]+m, 1) < 0) {
+            printf("Error write handle\n");
+            return 1;
+        }
 
+        if (serial_read (serialHandle, &rx_data, 1) < 0) {
+            printf("Error read handle\n");
+            return 1;
+        }
+        else printf("Read success! RX_DATA = %x\n", rx_data);
+
+        if (rx_data == SUCCESSFULLY_RECEIVED) {
+            m = 0;
+            n++;
+        }
+        else if (rx_data == NOT_ALL_RECEIVED) m = 0;
+        else if (rx_data == ANSWER_CODE) {
+            m++;
+            printf("Greate answer\n");
+        }
+        else printf ("This is not the message we've been waiting for!\n");
+
+    }
+#endif
     printf("The file has ended\n");
     serial_close(serialHandle);
 

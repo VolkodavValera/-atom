@@ -41,7 +41,7 @@ begin
 			begin
 			H_Counter	<=	1'b0;
 			oSYNC_COLOR <= 1'b0;
-			end	
+			end
 		if(H_Counter == A_TIME_H-1)
 		H_SYNC_CLK	<=	1'b0;
 		if(H_Counter == A_TIME_H + B_TIME_H-1)
