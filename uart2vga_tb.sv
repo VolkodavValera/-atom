@@ -132,7 +132,19 @@ initial begin
     $display("0 byte transmit");
     @(done_byte);
     $display("Greate answer!");
-    $finish;
+/*
+    fork
+        begin
+            @(done_byte);
+            $display("Greate answer!");
+        end
+
+        begin
+            repeat (50000) @(posedge sys_clk);
+            $display("Timeout");
+        end
+    join_any*/
+    $stop;
 end
 
 
