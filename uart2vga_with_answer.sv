@@ -283,7 +283,7 @@ module uart2vga_with_answer (
 		defparam
 			PLL_VGA.bandwidth_type = "AUTO",
 			PLL_VGA.clk0_divide_by = 2000,
-			PLL_VGA.clk0_duty_cycle = FREQ,
+			PLL_VGA.clk0_duty_cycle = FREQ_MHZ,
 			PLL_VGA.clk0_multiply_by = 1007,
 			PLL_VGA.clk0_phase_shift = "0",
 			PLL_VGA.compensate_clock = "CLK0",
@@ -319,7 +319,7 @@ module uart2vga_with_answer (
 		defparam
 	        PLL_SYSTEM.bandwidth_type = "AUTO",
 	        PLL_SYSTEM.clk0_divide_by = FREQ_DIV_SYS,
-	        PLL_SYSTEM.clk0_duty_cycle = FREQ,
+	        PLL_SYSTEM.clk0_duty_cycle = FREQ_MHZ,
 	        PLL_SYSTEM.clk0_multiply_by = FREQ_MULT_SYS,
 	        PLL_SYSTEM.clk0_phase_shift = "0",
 	        PLL_SYSTEM.compensate_clock = "CLK0",

@@ -32,34 +32,34 @@ localparam  STOP_WORD 		= 6;
 /*----------------------------------------------------------------------------------*/
 /*									Input											*/
 /*----------------------------------------------------------------------------------*/
-	input							clk;
-	input							rst_n;
+	input								clk;
+	input								rst_n;
 
-    input                           rxd;
+    input                           	rxd;
 
 /*----------------------------------------------------------------------------------*/
 /*									Output											*/
 /*----------------------------------------------------------------------------------*/
-	output                          txd;
-	output [3 * Wight - 1 : 0]		uart_data;
-	output [8:0]					row;
-	output 							done;
+	output                          	txd;
+	output logic [3 * Wight - 1 : 0]	uart_data;
+	output logic [8:0]					row;
+	output logic						done;
 
 /*----------------------------------------------------------------------------------*/
 /*									Variables										*/
 /*----------------------------------------------------------------------------------*/
-	logic [7:0] 					data_rx;
-	logic [7:0] 					data_tx;
-	logic 							start_tx;
-	wire 							busy;
-	wire 							busy_neg;
-	logic 							done_byte;
-	logic [2:0] 					state;
-	logic 							answer;
-	logic 							answer_err;
-	logic [7:0] 					cnt_data;
-	logic [7:0] 					cnt_pause;
-	logic 							pause;
+	logic [7:0] 						data_rx;
+	logic [7:0] 						data_tx;
+	logic 								start_tx;
+	wire 								busy;
+	wire 								busy_neg;
+	logic 								done_byte;
+	logic [2:0] 						state;
+	logic 								answer;
+	logic 								answer_err;
+	logic [7:0] 						cnt_data;
+	logic [7:0] 						cnt_pause;
+	logic 								pause;
 
 
 
