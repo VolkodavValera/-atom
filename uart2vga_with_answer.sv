@@ -100,7 +100,7 @@ module uart2vga_with_answer (
 	input							clk;
 	input							rst_n;
 
-    input                           rx;
+    input                           rx;						// UART_RX
 
 	input [1:0]						SW;
 
@@ -113,7 +113,7 @@ module uart2vga_with_answer (
 	output	[3:0]					VGA_G;	 				//	VGA Green[3:0]
 	output	[3:0]					VGA_B;   				//	VGA Blue[3:0]
 
-    output                          tx;
+    output                          tx;						// UART_TX
 
 	output 	[9:0]					LED;
 
