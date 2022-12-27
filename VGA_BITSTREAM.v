@@ -16,9 +16,9 @@ module	VGA_CIRCLE	(	//	Read Out Side
 						Green_color,
 						Blue_color);
 //	Read Out Side
-output	reg	[9:0]	oRed;
-output	reg	[9:0]	oGreen;
-output	reg	[9:0]	oBlue;
+output	reg	[3:0]	oRed;
+output	reg	[3:0]	oGreen;
+output	reg	[3:0]	oBlue;
 input	[9:0]		iVGA_X;
 input	[8:0]		iVGA_Y;
 input	[3:0]		Red_color;

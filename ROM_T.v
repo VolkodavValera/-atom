@@ -84,12 +84,8 @@ module ROM_T (
 		altsyncram_component.address_aclr_a = "NONE",
 		altsyncram_component.clock_enable_input_a = "BYPASS",
 		altsyncram_component.clock_enable_output_a = "BYPASS",
-`ifdef NO_PLI
-		altsyncram_component.init_file = "./source/myhex_30x30.rif"
-`else
-		altsyncram_component.init_file = "./source/myhex_30x30.hex"
-`endif
-,
+		//altsyncram_component.init_file = "./source/myhex_30x30.hex",
+		altsyncram_component.init_file = "myhex_30x30.hex",
 		altsyncram_component.intended_device_family = "MAX 10",
 		altsyncram_component.lpm_hint = "ENABLE_RUNTIME_MOD=NO",
 		altsyncram_component.lpm_type = "altsyncram",

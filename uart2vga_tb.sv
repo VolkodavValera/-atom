@@ -1,5 +1,6 @@
 `timescale      1ns / 1ns
-`define         SYS_CLK 100_000_000
+`define         SYS_CLK 50_000_000
+`define UART_TEST 	1
 
 module uart2vga_tb ();
 
@@ -21,11 +22,11 @@ parameter BYTE_SIZE_Y           = 2;
 parameter BYTE_SIZE_STOP        = 1;
 parameter STOP_BYTE             = 8'hDD;
 
-parameter Wight             = 640;
-parameter Height            = 480;
-parameter SYS_CLK_DIV2		= `SYS_CLK;
-localparam REPEAT_TX_NUMBER = BYTE_SIZE_ROW + BYTE_SIZE_Y + BYTE_SIZE_STOP;
-localparam time SYS_CLK_PERIOD = 1_000_000_000.0 / SYS_CLK_DIV2;  // (1S-ns / F mhz = P)
+parameter Wight                 = 640;
+parameter Height                = 480;
+parameter SYS_CLK_DIV2		    = `SYS_CLK;
+localparam REPEAT_TX_NUMBER     = BYTE_SIZE_ROW + BYTE_SIZE_Y + BYTE_SIZE_STOP;
+localparam time SYS_CLK_PERIOD  = 1_000_000_000.0 / SYS_CLK_DIV2;  // (1S-ns / F mhz = P)
 /*----------------------------------------------------------------------------------*/
 /*								    Variables										*/
 /*----------------------------------------------------------------------------------*/
@@ -34,10 +35,10 @@ logic	    rst_n;
 
 // VGA Interface
 logic	    VGA_HS;
-logic	    VGA_VS;
-logic	    VGA_R;
-logic	    VGA_G;
-logic	    VGA_B;
+logic 	    VGA_VS;
+logic [3:0] VGA_R;
+logic [3:0] VGA_G;
+logic [3:0] VGA_B;
 
 // UART
 logic       uart_tx;
@@ -62,8 +63,9 @@ logic       done_byte;
 
 bit [REPEAT_TX_NUMBER - 1 : 0] [7:0] random_date;
 
-int d_out;
-int i = 2;
+int         d_out;
+int         i;
+int         n = 0;
 
 /*----------------------------------------------------------------------------------*/
 /*								clock frequency										*/
@@ -90,7 +92,7 @@ task Reset();
     rst_n = 1'b1;
     @(posedge sys_clk);
     @(posedge sys_clk);
-endtask
+endtask // Reset
 
 task tx_date (input int n);
     data_tx = random_date[n];
@@ -100,6 +102,21 @@ task tx_date (input int n);
     start_tx = 1'b0;
 endtask //tx_date 
 
+task trx_date(input int n);
+    $display("+------------------------------------+");
+    tx_date (0);
+    @(negedge busy);
+    $display("%d byte transmit", n);
+    @(done_byte);
+    if (data_rx == random_date[n] && n >= 2 || n < 2) begin
+        $display("\t\tGreate T-R!");
+    end
+    else begin
+        $display("Error! The information was lost");
+        $stop;
+    end
+endtask // trx_date
+
 /*----------------------------------------------------------------------------------*/
 /*								Initial blocks										*/
 /*----------------------------------------------------------------------------------*/
@@ -108,6 +125,15 @@ initial begin
     SW = 2'b10;
     start_tx = 1'b0;
 
+    `ifdef UART_TEST
+    i = 0;
+    repeat (REPEAT_TX_NUMBER) begin
+        d_out = $random;
+        random_date[i] = d_out;
+        i++;
+    end    
+    `else
+    i = 2;
     random_date[1:0] = 16'h0000;
 
     repeat (BYTE_SIZE_ROW) begin
@@ -115,6 +141,7 @@ initial begin
         random_date[i] = d_out;
         i++;
     end
+    `endif
 
     random_date[i] = STOP_BYTE;
 
@@ -126,12 +153,15 @@ initial begin
 end
 
 initial begin
-    #2000
-    tx_date (0);
-    @(negedge busy);
-    $display("0 byte transmit");
-    @(done_byte);
-    $display("Greate answer!");
+    repeat (REPEAT_TX_NUMBER) begin
+        #2000
+        trx_date(n);
+        n++;
+    end
+    $display("+------------------------------------+");
+	$display("|             End UART2VGA           |");
+	$display("+------------------------------------+");
+
 /*
     fork
         begin
@@ -182,11 +212,11 @@ uart_transmiter dut_tx(
                     .txd(uart_tx),
                     .busy(busy));
     defparam
-        dut_tx.EIGHT_BIT_DATA  = EIGHT_BIT_DATA,
-        dut_tx.PARITY_BIT      = PARITY_BIT,
-        dut_tx.STOP_BIT        = STOP_BIT,
-        dut_tx.DEFAULT_BDR     = DEFAULT_BDR,
-		dut_tx.SYS_CLK_DIV2	   = SYS_CLK_DIV2;
+        dut_tx.EIGHT_BIT_DATA   = EIGHT_BIT_DATA,
+        dut_tx.PARITY_BIT       = PARITY_BIT,
+        dut_tx.STOP_BIT         = STOP_BIT,
+        dut_tx.DEFAULT_BDR      = DEFAULT_BDR,
+		dut_tx.SYS_CLK_DIV2	    = SYS_CLK_DIV2;
 
 uart_receiver dut_rx(
                     .clk(sys_clk),
@@ -195,10 +225,10 @@ uart_receiver dut_rx(
                     .data(data_rx),
                     .done(done_byte));
     defparam
-        dut_rx.EIGHT_BIT_DATA  = EIGHT_BIT_DATA,
-        dut_rx.PARITY_BIT      = PARITY_BIT,
-        dut_rx.STOP_BIT        = STOP_BIT,
-        dut_rx.DEFAULT_BDR     = DEFAULT_BDR,
-		dut_rx.SYS_CLK_DIV2	= SYS_CLK_DIV2;
+        dut_rx.EIGHT_BIT_DATA   = EIGHT_BIT_DATA,
+        dut_rx.PARITY_BIT       = PARITY_BIT,
+        dut_rx.STOP_BIT         = STOP_BIT,
+        dut_rx.DEFAULT_BDR      = DEFAULT_BDR,
+		dut_rx.SYS_CLK_DIV2	    = SYS_CLK_DIV2;
 
 endmodule

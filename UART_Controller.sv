@@ -248,6 +248,8 @@ localparam  STOP_WORD 		= 6;
 
 						cnt_data++;
 					end
+
+					data_tx <= data_rx;
 				end
 
 				FEEDBACK_CONVERT: begin

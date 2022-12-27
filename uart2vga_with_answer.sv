@@ -113,7 +113,7 @@ module uart2vga_with_answer (
 	output	[3:0]					VGA_G;	 				//	VGA Green[3:0]
 	output	[3:0]					VGA_B;   				//	VGA Blue[3:0]
 
-    output                          tx;						// UART_TX
+    output                          tx;						//	UART_TX
 
 	output 	[9:0]					LED;
 
@@ -360,7 +360,8 @@ module uart2vga_with_answer (
 			ROM_Palitra.address_aclr_a = "NONE",
 			ROM_Palitra.clock_enable_input_a = "BYPASS",
 			ROM_Palitra.clock_enable_output_a = "BYPASS",
-			ROM_Palitra.init_file = "./source/palitra.hex",
+			//ROM_Palitra.init_file = "./source/palitra.hex",
+			ROM_Palitra.init_file = "palitra.hex",
 			ROM_Palitra.intended_device_family = "MAX 10",
 			ROM_Palitra.lpm_hint = "ENABLE_RUNTIME_MOD=NO",
 			ROM_Palitra.lpm_type = "altsyncram",
