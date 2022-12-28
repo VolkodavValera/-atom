@@ -7,7 +7,7 @@ parameter PARITY_BIT       		= 0;
 parameter STOP_BIT         		= 2;
 parameter DEFAULT_BDR      		= 115200;
 parameter END_WORD 				= 8'hDD;
-parameter SUCCESSFULLY_RECEIVED	= 8'hFF;
+parameter SUCCESSFULLY_RECEIVED	= 8'hBC;
 parameter NOT_ALL_RECEIVED 		= 8'h11;
 parameter ANSWER_CODE 			= 8'hAA;
 parameter VALUE_PAUSE			= 8'hFF;
@@ -249,7 +249,7 @@ localparam  STOP_WORD 		= 6;
 						cnt_data++;
 					end
 
-					data_tx <= data_rx;
+					//data_tx <= data_rx;
 				end
 
 				FEEDBACK_CONVERT: begin

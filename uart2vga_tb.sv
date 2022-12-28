@@ -105,17 +105,20 @@ endtask //tx_date
 
 task trx_date(input int n);
     $display("+------------------------------------+");
-    tx_date (0);
+    tx_date (n);
     @(negedge busy);
     $display("%d byte transmit", n);
     @(done_byte);
+    $display("+------------------------------------+");
     if ((data_rx == random_date[n] && n >= 2) || (n < 2 && data_rx == ANSWER_CODE)) begin
         $display("\t\tGreate T-R!");
     end
     else begin
-        $display("Error! The information was lost");
+        $display("Error! The information was lost:\n\t%b\n\t%b", data_rx, random_date[n]);
         $stop;
     end
+    $display("                  %d                  ", n);
+    $display("+------------------------------------+");
 endtask // trx_date
 
 /*----------------------------------------------------------------------------------*/

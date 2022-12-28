@@ -17,11 +17,11 @@
 #define NUMBER_ROWS             480
 #define SIZE_BYTE               8
 #define STOP_BYTE               0xDD
-#define SUCCESSFULLY_RECEIVED   0xFF
+#define SUCCESSFULLY_RECEIVED   0xBC
 #define NOT_ALL_RECEIVED        0x11
 #define ANSWER_CODE             0xAA
 
-char* Handle_Name   = "\\\\.\\COM4";
+char* Handle_Name   = "\\\\.\\COM5";
 char* File_Name     = "init_mem_uart2.txt";
 
 int main() {
@@ -124,6 +124,8 @@ int main() {
 
 #else
     while (n != NUMBER_ROWS) {
+        printf ("\n/--------row - %d    byte - %d------/\n", n, m);
+        printf ("/-----------------------------------/\n");
         if (serial_write(serialHandle, SerialBuffer[n]+m, 1) < 0) {
             printf("Error write handle\n");
             return 1;
@@ -146,6 +148,7 @@ int main() {
         }
         else printf ("This is not the message we've been waiting for!\n");
 
+        printf ("/-----------------------------------/\n");
     }
 #endif
     printf("The file has ended\n");

@@ -208,7 +208,7 @@ module uart2vga_with_answer (
 	        UART.EIGHT_BIT_DATA  	= 8,
 	        UART.PARITY_BIT      	= 0,
 	        UART.STOP_BIT        	= 2,
-	        UART.DEFAULT_BDR     	= 9600,
+	        UART.DEFAULT_BDR     	= 115200,
 			UART.ANSWER_CODE		= 8'hAA,
 			UART.VALUE_PAUSE		= 8'hFF,
 			UART.SYS_CLK_DIV2		= FREQUENCY_SYS / 2,

@@ -14,7 +14,7 @@
 #include<time.h>
 #include <stdint.h>
 
-#define baudrate CBR_9600
+#define baudrate CBR_115200
 #define bytesize 8
 #define stopBits TWOSTOPBITS
 #define parity   NOPARITY //EVENPARITY
