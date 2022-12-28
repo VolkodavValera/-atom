@@ -10,6 +10,7 @@ parameter END_WORD 				= 8'hDD;
 parameter SUCCESSFULLY_RECEIVED	= 8'hBC;
 parameter NOT_ALL_RECEIVED 		= 8'h11;
 parameter ANSWER_CODE 			= 8'hAA;
+parameter ANSWER_CODE_TAKE_ROW	= 8'hCC;
 parameter VALUE_PAUSE			= 8'hFF;
 
 parameter Wight             = 640;
@@ -150,7 +151,7 @@ localparam  STOP_WORD 		= 6;
 					else
 					state <= CONVERT_BYTE_2;*/
 					if (done_byte) begin
-						if (cnt_data == 8'd238) state <= CHECK_END_WORD;
+						if (cnt_data == 8'd239) state <= CHECK_END_WORD;
 						else state <= FEEDBACK_CONVERT;
 					end
 				end
@@ -216,7 +217,7 @@ localparam  STOP_WORD 		= 6;
 
 				FEEDBACK_START: begin
 					if (pause) begin
-						data_tx <= ANSWER_CODE;
+						data_tx <= ANSWER_CODE_TAKE_ROW;
 						answer <= 1'b1;
 					end
 				end
@@ -230,7 +231,10 @@ localparam  STOP_WORD 		= 6;
 				end
 
 				FEEDBACK_ROW: begin
-					if (pause) answer <= 1'b1;
+					if (pause) begin
+						data_tx <= ANSWER_CODE_TAKE_ROW;
+						answer <= 1'b1;
+					end
 				end
 
 				CONVERT_BYTE_1: begin
@@ -253,7 +257,10 @@ localparam  STOP_WORD 		= 6;
 				end
 
 				FEEDBACK_CONVERT: begin
-					if (pause) answer <= 1'b1;
+					if (pause) begin
+						data_tx <= ANSWER_CODE;
+						answer <= 1'b1;
+					end
 				end
 /*
 				CONVERT_BYTE_2: begin

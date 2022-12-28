@@ -20,6 +20,7 @@
 #define SUCCESSFULLY_RECEIVED   0xBC
 #define NOT_ALL_RECEIVED        0x11
 #define ANSWER_CODE             0xAA
+#define ANSWER_CODE_TAKE_ROW    0xCC
 
 char* Handle_Name   = "\\\\.\\COM5";
 char* File_Name     = "init_mem_uart2.txt";
@@ -85,6 +86,7 @@ int main() {
     }
 
     printf("convert greate\n");
+    printf("Size: %d", sizeof(SerialBuffer[0]));
 /*
     for (size_t i = 0; i < NUMBER_ROWS; i++) {
         printf("SerialBuffer[%d] = %d %d\n", i, SerialBuffer[i][0], SerialBuffer[i][1]);
@@ -126,6 +128,7 @@ int main() {
     while (n != NUMBER_ROWS) {
         printf ("\n/--------row - %d    byte - %d------/\n", n, m);
         printf ("/-----------------------------------/\n");
+        
         if (serial_write(serialHandle, SerialBuffer[n]+m, 1) < 0) {
             printf("Error write handle\n");
             return 1;
@@ -142,6 +145,14 @@ int main() {
             n++;
         }
         else if (rx_data == NOT_ALL_RECEIVED) m = 0;
+        else if (rx_data == ANSWER_CODE_TAKE_ROW) {
+            m++;
+            printf("Take row!\n");
+            if (m == 2) {
+                printf ("/-----------------------------------/\n");
+                printf ("/------------ROW TAKE FULL----------/\n");
+            }
+        }
         else if (rx_data == ANSWER_CODE) {
             m++;
             printf("Greate answer\n");
