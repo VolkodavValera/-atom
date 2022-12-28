@@ -14,7 +14,7 @@ module uart_receiver(clk,rst_n,rxd,data,done);
 		parameter PARITY_BIT       	= 0;
 		parameter STOP_BIT         	= 2;
 		parameter DEFAULT_BDR      	= 115200;
-		parameter SYS_CLK_DIV2		= 100_000_000;
+		parameter SYS_CLK_DIV2		= 50_000_000;
 
 
 		localparam  CLR 			= 0;
@@ -42,12 +42,12 @@ module uart_receiver(clk,rst_n,rxd,data,done);
 		DONE    		  = 3'd5;
 
 
-		reg rx_bit = CLR;
+		reg rx_bit = SET;
 		reg parity_bit = CLR;
 		reg sample = CLR;
 
 		reg [2:0] state = 3'h0;
-		reg [2:0] sync_reg = 3'h0;
+		reg [2:0] sync_reg = 3'hF;
 		reg [3:0] clk_counter = 4'h0;
 		reg [1:0] stop_bit_counter  = 2'h0;
 		reg [3:0] bit_counter  = 4'h0;

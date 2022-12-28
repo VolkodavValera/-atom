@@ -1,6 +1,6 @@
 `timescale      1ns / 1ns
-`define         SYS_CLK 50_000_000
-`define UART_TEST 	1
+`define         SYS_CLK     50_000_000
+`define         UART_TEST 	1
 
 module uart2vga_tb ();
 
@@ -24,14 +24,14 @@ parameter STOP_BYTE             = 8'hDD;
 
 parameter Wight                 = 640;
 parameter Height                = 480;
-parameter SYS_CLK_DIV2		    = `SYS_CLK;
+parameter SYS_CLK_DIV2		    = `SYS_CLK / 2;
 localparam REPEAT_TX_NUMBER     = BYTE_SIZE_ROW + BYTE_SIZE_Y + BYTE_SIZE_STOP;
-localparam time SYS_CLK_PERIOD  = 1_000_000_000.0 / SYS_CLK_DIV2;  // (1S-ns / F mhz = P)
+localparam time SYS_CLK_PERIOD  = 1_000_000_000.0 / `SYS_CLK;  // (1S-ns / F mhz = P)
 /*----------------------------------------------------------------------------------*/
 /*								    Variables										*/
 /*----------------------------------------------------------------------------------*/
 logic       sys_clk;
-logic	    rst_n;
+logic	    rst_n = 1;
 
 // VGA Interface
 logic	    VGA_HS;
@@ -41,11 +41,11 @@ logic [3:0] VGA_G;
 logic [3:0] VGA_B;
 
 // UART
-logic       uart_tx;
+logic       uart_tx = 1;
 logic       uart_rx;
 
 // FPGA
-logic       fpga_tx;
+logic       fpga_tx = 1;
 logic       fpga_rx;
 
 // Other
@@ -54,7 +54,7 @@ logic [9:0] LED;
 
 // TX
 logic       start_tx;
-logic [7:0] data_tx;
+logic [7:0] data_tx = '0;
 logic       busy;
 
 // RX
@@ -67,6 +67,7 @@ int         d_out;
 int         i;
 int         n = 0;
 
+logic       strobe;
 /*----------------------------------------------------------------------------------*/
 /*								clock frequency										*/
 /*----------------------------------------------------------------------------------*/
@@ -108,7 +109,7 @@ task trx_date(input int n);
     @(negedge busy);
     $display("%d byte transmit", n);
     @(done_byte);
-    if (data_rx == random_date[n] && n >= 2 || n < 2) begin
+    if ((data_rx == random_date[n] && n >= 2) || (n < 2 && data_rx == ANSWER_CODE)) begin
         $display("\t\tGreate T-R!");
     end
     else begin
@@ -149,10 +150,15 @@ initial begin
 	$display("|         Testing UART2VGA           |");
 	$display("+------------------------------------+");
 
+    repeat (20) @(posedge sys_clk);
     Reset();
 end
 
 initial begin
+    #1000
+    strobe = 1;
+    #1000
+    strobe = 0;
     repeat (REPEAT_TX_NUMBER) begin
         #2000
         trx_date(n);

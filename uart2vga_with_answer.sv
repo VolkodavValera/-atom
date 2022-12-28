@@ -211,7 +211,7 @@ module uart2vga_with_answer (
 	        UART.DEFAULT_BDR     	= 9600,
 			UART.ANSWER_CODE		= 8'hAA,
 			UART.VALUE_PAUSE		= 8'hFF,
-			UART.SYS_CLK_DIV2		= FREQUENCY_SYS,
+			UART.SYS_CLK_DIV2		= FREQUENCY_SYS / 2,
 			UART.Wight        		= Wight,
 			UART.Height     		= Height;
 

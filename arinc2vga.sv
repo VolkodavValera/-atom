@@ -184,7 +184,7 @@ module arinc2vga (
     arinc708rx ARINC(
             .clk_drv(clk_sys),
             .rst_n(rst_n),
-			.address(4`d2),
+			.address(4'd2),
 			.read(),
 			.readdata(readdata_arinc),
 			.write(write_arinc),

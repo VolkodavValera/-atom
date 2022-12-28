@@ -15,7 +15,7 @@ module uart_transmiter(clk,start_strobe,data,txd,busy);
 		parameter PARITY_BIT       = 0;
 		parameter STOP_BIT         = 2;
 		parameter DEFAULT_BDR      = 115200;
-		parameter SYS_CLK_DIV2		= 100_000_000;
+		parameter SYS_CLK_DIV2		= 50_000_000;
 
 		localparam  CLR 			= 0;
 		localparam  SET 			= 1;
@@ -27,7 +27,7 @@ module uart_transmiter(clk,start_strobe,data,txd,busy);
 		output	wire busy;
 
 		reg enable = CLR;
-		reg [11:0] shift = 12'h0;
+		reg [11:0] shift = 12'h1;
 		reg [7:0]  bit_counter = 8'h0;
 		reg [16:0] nco = 17'h10000;
 
