@@ -1,6 +1,6 @@
 `timescale      1ns / 1ns
 `define         SYS_CLK     50_000_000
-`define         UART_TEST 	1
+//`define         UART_TEST 	1
 
 module uart2vga_tb ();
 
@@ -16,6 +16,7 @@ parameter SUCCESSFULLY_RECEIVED	= 8'hFF;
 parameter NOT_ALL_RECEIVED 		= 8'h11;
 parameter ANSWER_CODE 			= 8'hAA;
 parameter VALUE_PAUSE			= 8'hFF;
+parameter ANSWER_CODE_TAKE_ROW	= 8'hCC;
 
 parameter BYTE_SIZE_ROW         = 240;
 parameter BYTE_SIZE_Y           = 2;
@@ -104,20 +105,36 @@ task tx_date (input int n);
 endtask //tx_date 
 
 task trx_date(input int n);
-    $display("+------------------------------------+");
+    $display("\n+------------------------------------+");
     tx_date (n);
     @(negedge busy);
-    $display("%d byte transmit", n);
+    $display("| %d byte transmit |", n);
     @(done_byte);
     $display("+------------------------------------+");
-    if ((data_rx == random_date[n] && n >= 2) || (n < 2 && data_rx == ANSWER_CODE)) begin
-        $display("\t\tGreate T-R!");
+    $display("\t\t%h", data_rx);
+    #2000
+    if (n == (REPEAT_TX_NUMBER - 1)) begin
+        if (data_rx == SUCCESSFULLY_RECEIVED) $display("\tThe package was received in full!");
+        else if (data_rx == NOT_ALL_RECEIVED) begin
+            @(done_byte);
+            $display("Did not receive %h data", data_rx);
+        end
+        else begin
+            $display("Problems!");
+            $stop;
+        end 
+    end
+    else if (n >= BYTE_SIZE_Y && n < (BYTE_SIZE_ROW + BYTE_SIZE_Y) && data_rx == ANSWER_CODE) begin
+        $display("\tGreate T-R Date!");
+    end
+    else if (n < BYTE_SIZE_Y && data_rx == ANSWER_CODE_TAKE_ROW) begin
+        $display("\tGreate T-R Row!");
     end
     else begin
-        $display("Error! The information was lost:\n\t%b\n\t%b", data_rx, random_date[n]);
+        $display("Error! The information was lost:\n\t%b", data_rx);
         $stop;
     end
-    $display("                  %d                  ", n);
+    //$display("\n\t%d", n);
     $display("+------------------------------------+");
 endtask // trx_date
 
@@ -137,14 +154,18 @@ initial begin
         i++;
     end    
     `else
+
     i = 2;
-    random_date[1:0] = 16'h0000;
+    random_date[1:0] = 16'h122;
 
     repeat (BYTE_SIZE_ROW) begin
         d_out = $random;
         random_date[i] = d_out;
         i++;
     end
+
+    random_date[i] = END_WORD;
+    
     `endif
 
     random_date[i] = STOP_BYTE;

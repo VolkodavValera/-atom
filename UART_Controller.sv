@@ -151,7 +151,7 @@ localparam  STOP_WORD 		= 6;
 					else
 					state <= CONVERT_BYTE_2;*/
 					if (done_byte) begin
-						if (cnt_data == 8'd239) state <= CHECK_END_WORD;
+						if (cnt_data == 8'd240) state <= CHECK_END_WORD;
 						else state <= FEEDBACK_CONVERT;
 					end
 				end
