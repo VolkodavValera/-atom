@@ -108,7 +108,7 @@ task trx_date(input int n);
     $display("\n+------------------------------------+");
     tx_date (n);
     @(negedge busy);
-    $display("| %d byte transmit |", n);
+    $display("| %d byte transmit\t\t|", n);
     @(done_byte);
     $display("+------------------------------------+");
     $display("\t\t%h", data_rx);
@@ -125,10 +125,10 @@ task trx_date(input int n);
         end 
     end
     else if (n >= BYTE_SIZE_Y && n < (BYTE_SIZE_ROW + BYTE_SIZE_Y) && data_rx == ANSWER_CODE) begin
-        $display("\tGreate T-R Date!");
+        $display("\t\tGreate T-R Date!");
     end
     else if (n < BYTE_SIZE_Y && data_rx == ANSWER_CODE_TAKE_ROW) begin
-        $display("\tGreate T-R Row!");
+        $display("\t\tGreate T-R Row!");
     end
     else begin
         $display("Error! The information was lost:\n\t%b", data_rx);
@@ -156,7 +156,7 @@ initial begin
     `else
 
     i = 2;
-    random_date[1:0] = 16'h122;
+    random_date[1:0] = 16'h2210;
 
     repeat (BYTE_SIZE_ROW) begin
         d_out = $random;
