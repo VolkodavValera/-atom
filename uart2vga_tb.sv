@@ -108,10 +108,10 @@ task trx_date(input int n);
     $display("\n+------------------------------------+");
     tx_date (n);
     @(negedge busy);
-    $display("| %d byte transmit \t\t\t|", n);
+    $display("| %d byte transmit \t\t\t\t\t|", n);
     @(done_byte);
     $display("+------------------------------------+");
-    $display("\tAnswer: %h", data_rx);
+    $display("\t\t  Answer: %h", data_rx);
     #2000
     if (n == (REPEAT_TX_NUMBER - 1)) begin
         if (data_rx == SUCCESSFULLY_RECEIVED) $display("\tThe package was received in full!");
@@ -125,10 +125,10 @@ task trx_date(input int n);
         end 
     end
     else if (n >= BYTE_SIZE_Y && n < (BYTE_SIZE_ROW + BYTE_SIZE_Y) && data_rx == ANSWER_CODE) begin
-        $display("\tGreate T-R Date!");
+        $display("\t\tGreate T-R Date!");
     end
     else if (n < BYTE_SIZE_Y && data_rx == ANSWER_CODE_TAKE_ROW) begin
-        $display("\tGreate T-R Row!");
+        $display("\t\tGreate T-R Row!");
     end
     else begin
         $display("Error! The information was lost:\n\t%b", data_rx);
