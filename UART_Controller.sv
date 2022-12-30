@@ -241,7 +241,7 @@ localparam  STOP_WORD 		= 6;
 					answer <= 1'b0;
 
 					if (done_byte) begin
-						if (cnt_data != 8'd240) begin
+						if (cnt_data != 8'd241) begin
 							uart_data[8 * cnt_data] 	<= data_rx[0];
 							uart_data[8 * cnt_data + 1] <= data_rx[1];
 							uart_data[8 * cnt_data + 2] <= data_rx[2];

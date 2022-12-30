@@ -111,7 +111,7 @@ task trx_date(input int n);
     $display("| %d byte transmit \t\t\t|", n);
     @(done_byte);
     $display("+------------------------------------+");
-    $display("\t\t%h", data_rx);
+    $display("\tAnswer: %h", data_rx);
     #2000
     if (n == (REPEAT_TX_NUMBER - 1)) begin
         if (data_rx == SUCCESSFULLY_RECEIVED) $display("\tThe package was received in full!");
