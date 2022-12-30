@@ -241,14 +241,16 @@ localparam  STOP_WORD 		= 6;
 					answer <= 1'b0;
 
 					if (done_byte) begin
-						uart_data[8 * cnt_data] 	<= data_rx[0];
-						uart_data[8 * cnt_data + 1] <= data_rx[1];
-						uart_data[8 * cnt_data + 2] <= data_rx[2];
-						uart_data[8 * cnt_data + 3] <= data_rx[3];
-						uart_data[8 * cnt_data + 4] <= data_rx[4];
-						uart_data[8 * cnt_data + 5] <= data_rx[5];
-						uart_data[8 * cnt_data + 6] <= data_rx[6];
-						uart_data[8 * cnt_data + 7] <= data_rx[7];
+						if (cnt_data != 8'd240) begin
+							uart_data[8 * cnt_data] 	<= data_rx[0];
+							uart_data[8 * cnt_data + 1] <= data_rx[1];
+							uart_data[8 * cnt_data + 2] <= data_rx[2];
+							uart_data[8 * cnt_data + 3] <= data_rx[3];
+							uart_data[8 * cnt_data + 4] <= data_rx[4];
+							uart_data[8 * cnt_data + 5] <= data_rx[5];
+							uart_data[8 * cnt_data + 6] <= data_rx[6];
+							uart_data[8 * cnt_data + 7] <= data_rx[7];							
+						end
 
 						cnt_data++;
 					end
