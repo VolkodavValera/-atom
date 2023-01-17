@@ -29,7 +29,6 @@ localparam  CHECK_END_WORD 	= 6;
 /*localparam  SUCCESS 		= 5;
 localparam  STOP_WORD 		= 6;
 */
-localparam	CNT_BYTE_MAX	= 8'hF0;
 
 /*----------------------------------------------------------------------------------*/
 /*									Input											*/
@@ -82,7 +81,7 @@ localparam	CNT_BYTE_MAX	= 8'hF0;
 	end
 
 	always_ff @ (posedge clk) begin
-		if (state == FEEDBACK_START || state == FEEDBACK_ROW || state == FEEDBACK_CONVERT || state == CHECK_END_WORD ) cnt_pause++;
+		if (state == FEEDBACK_START || state == FEEDBACK_ROW || state == FEEDBACK_CONVERT ) cnt_pause++;
 		else cnt_pause <= '0;
 	end
 
@@ -152,7 +151,7 @@ localparam	CNT_BYTE_MAX	= 8'hF0;
 					else
 					state <= CONVERT_BYTE_2;*/
 					if (done_byte) begin
-						if (cnt_data == CNT_BYTE_MAX || data_rx == END_WORD) state <= CHECK_END_WORD;
+						if (cnt_data == 8'd239) state <= CHECK_END_WORD;
 						else state <= FEEDBACK_CONVERT;
 					end
 				end
@@ -176,7 +175,7 @@ localparam	CNT_BYTE_MAX	= 8'hF0;
 				end
 */
 				CHECK_END_WORD: begin
-					if (pause) state <= START_WORD;
+					if (done_byte) state <= START_WORD;
 				end
 /*
 				SUCCESS: begin
@@ -213,7 +212,7 @@ localparam	CNT_BYTE_MAX	= 8'hF0;
 					uart_data 	<= '0;
 					cnt_data	<= '0;
 					done		<= '0;
-					answer		<= answer_err;
+					answer		<= '0;
 				end
 
 				FEEDBACK_START: begin
@@ -242,15 +241,15 @@ localparam	CNT_BYTE_MAX	= 8'hF0;
 					answer <= 1'b0;
 
 					if (done_byte) begin
-						if (cnt_data < CNT_BYTE_MAX) begin
-							uart_data[8 * cnt_data] 	<= data_rx[7];
-							uart_data[8 * cnt_data + 1] <= data_rx[6];
-							uart_data[8 * cnt_data + 2] <= data_rx[5];
-							uart_data[8 * cnt_data + 3] <= data_rx[4];
-							uart_data[8 * cnt_data + 4] <= data_rx[3];
-							uart_data[8 * cnt_data + 5] <= data_rx[2];
-							uart_data[8 * cnt_data + 6] <= data_rx[1];
-							uart_data[8 * cnt_data + 7] <= data_rx[0];							
+						if (cnt_data != 8'd241) begin
+							uart_data[8 * cnt_data] 	<= data_rx[0];
+							uart_data[8 * cnt_data + 1] <= data_rx[1];
+							uart_data[8 * cnt_data + 2] <= data_rx[2];
+							uart_data[8 * cnt_data + 3] <= data_rx[3];
+							uart_data[8 * cnt_data + 4] <= data_rx[4];
+							uart_data[8 * cnt_data + 5] <= data_rx[5];
+							uart_data[8 * cnt_data + 6] <= data_rx[6];
+							uart_data[8 * cnt_data + 7] <= data_rx[7];							
 						end
 
 					end
@@ -293,16 +292,14 @@ localparam	CNT_BYTE_MAX	= 8'hF0;
 				end
 */
 				CHECK_END_WORD: begin
-					if (pause) begin
-						if (data_rx == END_WORD) begin
-							done 	<= 1'b1;
-							data_tx <= SUCCESSFULLY_RECEIVED;
-							answer 	<= 1'b1;
-						end
-						else begin
-							data_tx <= NOT_ALL_RECEIVED;
-							answer 	<= 1'b1;
-						end
+					if (data_rx == END_WORD) begin
+						done 	<= 1'b1;
+						data_tx <= SUCCESSFULLY_RECEIVED;
+						answer 	<= 1'b1;
+					end
+					else begin
+						data_tx <= NOT_ALL_RECEIVED;
+						answer 	<= 1'b1;
 					end
 				end
 /*

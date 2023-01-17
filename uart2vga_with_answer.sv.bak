@@ -113,7 +113,7 @@ module uart2vga_with_answer (
 	output	[3:0]					VGA_G;	 				//	VGA Green[3:0]
 	output	[3:0]					VGA_B;   				//	VGA Blue[3:0]
 
-    output                          tx;						//	UART_TX
+    output                          tx;						// UART_TX
 
 	output 	[9:0]					LED;
 
@@ -122,7 +122,7 @@ module uart2vga_with_answer (
 /*----------------------------------------------------------------------------------*/
 	// PLL signals
 	// ---------------------------------------------------
-	logic 						clk_sys;
+	wire 							clk_sys;
 	wire 							clk_vga;
 
     // Other
@@ -144,19 +144,15 @@ module uart2vga_with_answer (
     logic                           UART_DONE;
     logic                           UART_DONE_FF;
     logic   [3 * Wight - 1 : 0]     UART_DATA_RX;
-	logic   [3 * Wight - 1 : 0]     UART_DATA_RX_REG;
 	logic 	[8:0] 					UART_ROW;
-	logic 	[8:0] 					UART_ROW_REG;
-	
-	logic 						clk_stp;
 
 
 /*----------------------------------------------------------------------------------*/
 /*								Сonnections											*/
 /*----------------------------------------------------------------------------------*/
-    assign ram_write_address = (UART_ROW_REG * Wight + cnt_received_uart_data);
+    assign ram_write_address = (UART_ROW * Wight + cnt_received_uart_data);
     assign ram_write = (UART_DONE_FF);
-	assign RAM_DATA = UART_DATA_RX_REG[2:0];
+	assign RAM_DATA = (UART_DATA_RX >> (3 * cnt_received_uart_data));
 
 	assign RAM_ADDR = ram_write ? ram_write_address : ram_read_address;
 	assign ROM_ADDR = (RAM_Q);
@@ -181,16 +177,6 @@ module uart2vga_with_answer (
         end
     end
 
-	always_ff @ (posedge clk_sys) begin
-		if (!rst_n) UART_ROW_REG <= '0;
-		else if (UART_DONE) UART_ROW_REG <= UART_ROW;
-	end
-
-	always_ff @ (posedge clk_sys) begin
-		if (!rst_n) UART_DATA_RX_REG <= '0;
-		else if (UART_DONE) UART_DATA_RX_REG <= UART_DATA_RX;
-		else if (UART_DONE_FF) UART_DATA_RX_REG <= UART_DATA_RX_REG >> 3;
-	end
 /*----------------------------------------------------------------------------------*/
 /*									Modules											*/
 /*----------------------------------------------------------------------------------*/
@@ -222,10 +208,10 @@ module uart2vga_with_answer (
 	        UART.EIGHT_BIT_DATA  	= 8,
 	        UART.PARITY_BIT      	= 0,
 	        UART.STOP_BIT        	= 2,
-	        UART.DEFAULT_BDR     	= 115200,
+	        UART.DEFAULT_BDR     	= 9600,
 			UART.ANSWER_CODE		= 8'hAA,
 			UART.VALUE_PAUSE		= 8'hFF,
-			UART.SYS_CLK_DIV2		= FREQUENCY_SYS / 2,
+			UART.SYS_CLK_DIV2		= FREQUENCY_SYS,
 			UART.Wight        		= Wight,
 			UART.Height     		= Height;
 
@@ -297,7 +283,7 @@ module uart2vga_with_answer (
 		defparam
 			PLL_VGA.bandwidth_type = "AUTO",
 			PLL_VGA.clk0_divide_by = 2000,
-			PLL_VGA.clk0_duty_cycle = FREQ_MHZ,
+			PLL_VGA.clk0_duty_cycle = FREQ,
 			PLL_VGA.clk0_multiply_by = 1007,
 			PLL_VGA.clk0_phase_shift = "0",
 			PLL_VGA.compensate_clock = "CLK0",
@@ -333,7 +319,7 @@ module uart2vga_with_answer (
 		defparam
 	        PLL_SYSTEM.bandwidth_type = "AUTO",
 	        PLL_SYSTEM.clk0_divide_by = FREQ_DIV_SYS,
-	        PLL_SYSTEM.clk0_duty_cycle = FREQ_MHZ,
+	        PLL_SYSTEM.clk0_duty_cycle = FREQ,
 	        PLL_SYSTEM.clk0_multiply_by = FREQ_MULT_SYS,
 	        PLL_SYSTEM.clk0_phase_shift = "0",
 	        PLL_SYSTEM.compensate_clock = "CLK0",
@@ -374,8 +360,7 @@ module uart2vga_with_answer (
 			ROM_Palitra.address_aclr_a = "NONE",
 			ROM_Palitra.clock_enable_input_a = "BYPASS",
 			ROM_Palitra.clock_enable_output_a = "BYPASS",
-			//ROM_Palitra.init_file = "./source/palitra.hex",
-			ROM_Palitra.init_file = "palitra.hex",
+			ROM_Palitra.init_file = "./source/palitra.hex",
 			ROM_Palitra.intended_device_family = "MAX 10",
 			ROM_Palitra.lpm_hint = "ENABLE_RUNTIME_MOD=NO",
 			ROM_Palitra.lpm_type = "altsyncram",

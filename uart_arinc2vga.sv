@@ -53,7 +53,7 @@
 
 
 
-module uart2vga_with_answer (
+module uart_arinc2vga (
 	// Clock
 	clk,
 
@@ -154,9 +154,7 @@ module uart2vga_with_answer (
 /*----------------------------------------------------------------------------------*/
 /*								Сonnections											*/
 /*----------------------------------------------------------------------------------*/
-    assign ram_write_address = (UART_ROW_REG * Wight + cnt_received_uart_data);
-    assign ram_write = (UART_DONE_FF);
-	assign RAM_DATA = UART_DATA_RX_REG[2:0];
+
 
 	assign RAM_ADDR = ram_write ? ram_write_address : ram_read_address;
 	assign ROM_ADDR = (RAM_Q);
@@ -166,31 +164,7 @@ module uart2vga_with_answer (
 /*----------------------------------------------------------------------------------*/
 /*								Always blocks										*/
 /*----------------------------------------------------------------------------------*/
-	always_ff @ (posedge clk_sys) begin
-        if (!rst_n) cnt_received_uart_data <= '0;
-        else if (UART_DONE) begin
-        	cnt_received_uart_data <= '0;
-			UART_DONE_FF <= 1'b1;
-        end
-		else begin
-            if (cnt_received_uart_data == Wight) begin
-            	cnt_received_uart_data <= '0;
-				UART_DONE_FF <= 1'b0;
-            end
-            else cnt_received_uart_data++;
-        end
-    end
 
-	always_ff @ (posedge clk_sys) begin
-		if (!rst_n) UART_ROW_REG <= '0;
-		else if (UART_DONE) UART_ROW_REG <= UART_ROW;
-	end
-
-	always_ff @ (posedge clk_sys) begin
-		if (!rst_n) UART_DATA_RX_REG <= '0;
-		else if (UART_DONE) UART_DATA_RX_REG <= UART_DATA_RX;
-		else if (UART_DONE_FF) UART_DATA_RX_REG <= UART_DATA_RX_REG >> 3;
-	end
 /*----------------------------------------------------------------------------------*/
 /*									Modules											*/
 /*----------------------------------------------------------------------------------*/
@@ -387,5 +361,31 @@ module uart2vga_with_answer (
 			ROM_Palitra.width_a = 12,
 			ROM_Palitra.width_byteena_a = 1;
 
+/*----------------------------------------------------------------------------------*/
+/*									FIFO											*/
+/*----------------------------------------------------------------------------------*/
+	scfifo fifo_arinc
+	(
+		.rdreq(fifo_rdreq),
+		.aclr(~rst_n),
+		.clock(clk),
+		.wrreq(fifo_wrreq),
+		.data(fifo_data),
+		.empty(fifo_empty),
+		.full(fifo_full),
+		.q(fifo_q)
+	);
 
-endmodule: uart2vga_with_answer
+	defparam
+		fifo_arinc.add_ram_output_register = "OFF",
+		fifo_arinc.intended_device_family = "MAX 10",
+		fifo_arinc.lpm_numwords = 512,
+		fifo_arinc.lpm_showahead = "OFF",
+		fifo_arinc.lpm_type = "scfifo",
+		fifo_arinc.lpm_width = 3,
+		fifo_arinc.lpm_widthu = 9,
+		fifo_arinc.overflow_checking = "ON",
+		fifo_arinc.underflow_checking = "ON",
+		fifo_arinc.use_eab = "ON";
+
+endmodule: uart_arinc2vga
