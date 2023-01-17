@@ -79,82 +79,94 @@ module uart_arinc2vga (
 /*----------------------------------------------------------------------------------*/
 /*									Parameters										*/
 /*----------------------------------------------------------------------------------*/
-	parameter ADDRESS_WIDTH		= 3;
-    parameter Wight             = 640;
-    parameter Height            = 480;
-	parameter FREQ_MHZ	 		= 50;
-	parameter FREQ_MULT_SYS		= 2;
-	parameter FREQ_DIV_SYS		= 1;
+	parameter ADDRESS_WIDTH		        = 3;
+    parameter Wight                     = 640;
+    parameter Height                    = 480;
+	parameter FREQ_MHZ	 		        = 50;
+	parameter FREQ_MULT_SYS             = 2;
+	parameter FREQ_DIV_SYS		        = 1;
+    parameter WIGHT_FIFO                = 512;
 
-    localparam MAX_ADDR_RAM   	= Wight * Height;
-	localparam WAIT_ARINC		= 0;
-	localparam FIFO_ARINC_FULL 	= 1;
-	localparam READ_DATA		= 2;
-	localparam FIFO_ARINC_EMPTY	= 3;
-	localparam FREQUENCY 		= FREQ_MHZ * 1_000_000;
-	localparam FREQUENCY_SYS	= FREQUENCY * FREQ_MULT_SYS / FREQ_DIV_SYS;
+    localparam MAX_ADDR_RAM   	        = Wight * Height;
+	localparam WAIT_ARINC		        = 0;
+	localparam FIFO_ARINC_FULL 	        = 1;
+	localparam READ_DATA		        = 2;
+	localparam FIFO_ARINC_EMPTY	        = 3;
+	localparam FREQUENCY 		        = FREQ_MHZ * 1_000_000;
+	localparam FREQUENCY_SYS	        = FREQUENCY * FREQ_MULT_SYS / FREQ_DIV_SYS;
 
 /*----------------------------------------------------------------------------------*/
 /*									Input											*/
 /*----------------------------------------------------------------------------------*/
-	input							clk;
-	input							rst_n;
+	input							    clk;
+	input							    rst_n;
 
-    input                           rx;						// UART_RX
+    input                               rx;						// UART_RX
 
-	input [1:0]						SW;
+	input [1:0]						    SW;
 
 /*----------------------------------------------------------------------------------*/
 /*									Output											*/
 /*----------------------------------------------------------------------------------*/
-	output							VGA_HS;					//	VGA H_SYNC
-	output							VGA_VS;					//	VGA V_SYNC
-	output	[3:0]					VGA_R;   				//	VGA Red[3:0]
-	output	[3:0]					VGA_G;	 				//	VGA Green[3:0]
-	output	[3:0]					VGA_B;   				//	VGA Blue[3:0]
+	output							    VGA_HS;					//	VGA H_SYNC
+	output							    VGA_VS;					//	VGA V_SYNC
+	output	[3:0]					    VGA_R;   				//	VGA Red[3:0]
+	output	[3:0]					    VGA_G;	 				//	VGA Green[3:0]
+	output	[3:0]					    VGA_B;   				//	VGA Blue[3:0]
 
-    output                          tx;						//	UART_TX
+    output                              tx;						//	UART_TX
 
-	output 	[9:0]					LED;
+	output 	[9:0]					    LED;
 
 /*----------------------------------------------------------------------------------*/
 /*								Variables											*/
 /*----------------------------------------------------------------------------------*/
 	// PLL signals
 	// ---------------------------------------------------
-	logic 						clk_sys;
-	wire 							clk_vga;
+	logic 						        clk_sys;
+	wire 							    clk_vga;
 
     // Other
-    logic   [9:0]                  cnt_received_uart_data;
+    // ---------------------------------------------------
+    logic   [9:0]                       cnt_received_uart_data;
 
 	// RAM
-	logic 	[2:0] 					RAM_Q;
-    logic   [2:0]                   RAM_DATA;
-	wire 	[18:0]					RAM_ADDR;
-	wire 	[18:0]					ram_read_address;
-	wire 	[18:0]					ram_write_address;
-	wire 							ram_write;
+    // ---------------------------------------------------
+	logic 	[2:0] 					    RAM_Q;
+    logic   [2:0]                       RAM_DATA;
+	wire 	[18:0]					    RAM_ADDR;
+	wire 	[18:0]					    ram_read_address;
+	wire 	[18:0]					    ram_write_address;
+	wire 							    ram_write;
 
 	// ROM
-	wire 	[11:0]					ROM_Q;
-	wire 	[2:0]					ROM_ADDR;
+    // ---------------------------------------------------
+	wire 	[11:0]					    ROM_Q;
+	wire 	[2:0]					    ROM_ADDR;
 
     // UART
-    logic                           UART_DONE;
-    logic                           UART_DONE_FF;
-    logic   [3 * Wight - 1 : 0]     UART_DATA_RX;
-	logic   [3 * Wight - 1 : 0]     UART_DATA_RX_REG;
-	logic 	[8:0] 					UART_ROW;
-	logic 	[8:0] 					UART_ROW_REG;
-	
-	logic 						clk_stp;
+    // ---------------------------------------------------
+    logic                               UART_DONE;
+    logic                               UART_DONE_FF;
+    logic   [3 * WIGHT_FIFO - 1 : 0]    UART_DATA_RX;
+	logic   [3 * WIGHT_FIFO - 1 : 0]    UART_DATA_RX_REG;
+	logic 	[8:0] 					    UART_ROW;
+	logic 	[8:0] 					    UART_ROW_REG;
 
-
+	// FIFO
+    // ---------------------------------------------------
+	wire 							    fifo_rdreq;
+	wire 							    fifo_wrreq;
+	wire [2:0]						    fifo_data;
+	wire [2:0]						    fifo_q;
+	wire 							    fifo_empty;
+	wire 							    fifo_full;
+    
 /*----------------------------------------------------------------------------------*/
 /*								Сonnections											*/
 /*----------------------------------------------------------------------------------*/
-
+    assign fifo_wrreq   = UART_DONE_FF;
+    assign fifo_data    = UART_DATA_RX_REG[2:0];
 
 	assign RAM_ADDR = ram_write ? ram_write_address : ram_read_address;
 	assign ROM_ADDR = (RAM_Q);
@@ -164,7 +176,22 @@ module uart_arinc2vga (
 /*----------------------------------------------------------------------------------*/
 /*								Always blocks										*/
 /*----------------------------------------------------------------------------------*/
+    always_ff @(posedge clk_sys) begin
+        if (!rst_n) UART_DONE_FF <= '0;
+        else if (UART_DONE) UART_DONE_FF <= 1'b1;
+        else if (fifo_full) UART_DONE_FF <= '0;
+    end
 
+    always_ff @ (posedge clk_sys) begin
+		if (!rst_n) UART_ROW_REG <= '0;
+		else if (UART_DONE) UART_ROW_REG <= UART_ROW;
+	end
+
+	always_ff @ (posedge clk_sys) begin
+		if (!rst_n) UART_DATA_RX_REG <= '0;
+		else if (UART_DONE) UART_DATA_RX_REG <= UART_DATA_RX;
+		else if (UART_DONE_FF) UART_DATA_RX_REG <= UART_DATA_RX_REG >> 3;
+	end
 /*----------------------------------------------------------------------------------*/
 /*									Modules											*/
 /*----------------------------------------------------------------------------------*/
@@ -184,14 +211,15 @@ module uart_arinc2vga (
 			.VGA_B(VGA_B),
 			.SW(SW));
 
-    UART_Controller UART(
+    UART_ARINC_Controller UART(
             .clk(clk_sys),
             .rst_n(rst_n),
             .rxd(rx),
 			.txd(tx),
 			.row(UART_ROW),
             .uart_data(UART_DATA_RX),
-            .done(UART_DONE));
+            .done(UART_DONE),
+            .fifo_empty(fifo_empty));
 	    defparam
 	        UART.EIGHT_BIT_DATA  	= 8,
 	        UART.PARITY_BIT      	= 0,
@@ -203,6 +231,17 @@ module uart_arinc2vga (
 			UART.Wight        		= Wight,
 			UART.Height     		= Height;
 
+	fifo2ram Signal_Handler(
+			.clk(clk_sys),
+			.rst_n(rst_n),
+			.angle(angle),
+			.fifo_q(fifo_q),
+			.read_fifo(fifo_rdreq),
+			.address_ram(ram_write_address),
+			.write_ram(ram_write),
+			.ram_data(RAM_DATA),
+			.fifo_empty(fifo_empty),
+			.fifo_full(fifo_full));
 /*----------------------------------------------------------------------------------*/
 /*									RAM												*/
 /*----------------------------------------------------------------------------------*/
@@ -368,7 +407,7 @@ module uart_arinc2vga (
 	(
 		.rdreq(fifo_rdreq),
 		.aclr(~rst_n),
-		.clock(clk),
+		.clock(clk_sys),
 		.wrreq(fifo_wrreq),
 		.data(fifo_data),
 		.empty(fifo_empty),
